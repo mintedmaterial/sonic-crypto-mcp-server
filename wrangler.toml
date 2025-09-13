@@ -1,0 +1,107 @@
+#Wrangler config for Sonic Crypto MCP Server
+
+name = "sonic-crypto-mcp-server"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Worker configuration
+[env.production]
+name = "sonic-crypto-mcp-server-prod"
+
+[env.staging]
+name = "sonic-crypto-mcp-server-staging"
+
+# Environment variables
+[vars]
+API_VERSION = "1.0.0"
+ENVIRONMENT = "production"
+MCP_SERVER_NAME = "sonic-crypto-mcp"
+MCP_SERVER_VERSION = "1.0.0"
+
+# AI Gateway binding for enhanced analysis
+[ai]
+binding = "AI"
+
+# Note: AI Gateway configuration will be set up separately
+
+# R2 Storage for historical data
+[[r2_buckets]]
+binding = "HISTORICAL_DATA"
+bucket_name = "sonic-crypto-historical"
+preview_bucket_name = "sonic-crypto-historical-preview"
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "CRYPTO_CACHE"
+class_name = "CryptoDataCache"
+
+[[durable_objects.bindings]]
+name = "MCP_SESSION"
+class_name = "MCPSessionManager"
+
+# KV Namespaces for caching and session management
+[[kv_namespaces]]
+binding = "SONIC_CACHE"
+id = "b3527f44e06e4fc8a78129b23055f3a1"
+
+[[kv_namespaces]]
+binding = "API_RATE_LIMIT"
+id = "cb20ca89e760482cafdd9aa6ae896115"
+
+# Analytics Engine for usage tracking
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+
+# Queue for background processing
+[[queues.producers]]
+binding = "CRYPTO_QUEUE"
+queue = "sonic-crypto-processing"
+
+[[queues.consumers]]
+queue = "sonic-crypto-processing"
+max_batch_size = 10
+max_batch_timeout = 30
+
+# D1 Database for metadata and configuration
+[[d1_databases]]
+binding = "CONFIG_DB"
+database_name = "sonic-crypto-config"
+database_id = "1e47552e-03a8-420e-8365-58eb412d6040"
+
+# Rate limiting
+[limits]
+cpu_ms = 50000
+
+# Build configuration
+[build]
+command = "npm run build"
+
+# Custom domains (configure after setting up domain in Cloudflare)
+# [[routes]]
+# pattern = "sonic-crypto-api.yourdomain.com/*"  
+# zone_name = "yourdomain.com"
+
+# Durable Objects migrations
+[[migrations]]
+tag = "v1"
+new_classes = [ "CryptoDataCache", "MCPSessionManager" ]
+
+# Cron triggers for automated market reports
+[triggers]
+crons = [
+  "0 8 * * *",   # Morning report at 8:00 AM UTC
+  "0 12 * * *",  # Lunch report at 12:00 PM UTC
+  "0 20 * * *"   # Evening report at 8:00 PM UTC
+]
+
+# R2 Storage for market reports
+[[r2_buckets]]
+binding = "MARKET_REPORTS"
+bucket_name = "sonic-market-reports"
+preview_bucket_name = "sonic-market-reports-preview"
+
+# Secrets (set with: wrangler secret put SECRET_NAME)
+# COINDESK_API_KEY
+# AI_GATEWAY_TOKEN
+# ANTHROPIC_API_KEY

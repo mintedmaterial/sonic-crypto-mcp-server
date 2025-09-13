@@ -56,7 +56,7 @@ interface MarketData {
 }
 
 // Durable Object for caching and state management
-export class CryptoDataCache {
+class CryptoDataCache {
   private state: DurableObjectState;
   private cache: Map<string, any> = new Map();
 
@@ -73,7 +73,7 @@ export class CryptoDataCache {
       this.cache.delete(key);
     }
     
-    const stored = await this.state.storage.get(key);
+    const stored: any = await this.state.storage.get(key);
     if (stored && stored.expires > Date.now()) {
       this.cache.set(key, stored);
       return stored.data;
@@ -93,6 +93,38 @@ export class CryptoDataCache {
   async delete(key: string): Promise<void> {
     this.cache.delete(key);
     await this.state.storage.delete(key);
+  }
+}
+
+// MCP Session Manager Durable Object
+class MCPSessionManager {
+  private state: DurableObjectState;
+  private sessions: Map<string, any> = new Map();
+
+  constructor(state: DurableObjectState) {
+    this.state = state;
+  }
+
+  async createSession(sessionId: string, sessionData: any): Promise<void> {
+    this.sessions.set(sessionId, sessionData);
+    await this.state.storage.put(sessionId, sessionData);
+  }
+
+  async getSession(sessionId: string): Promise<any> {
+    if (this.sessions.has(sessionId)) {
+      return this.sessions.get(sessionId);
+    }
+    const stored = await this.state.storage.get(sessionId);
+    if (stored) {
+      this.sessions.set(sessionId, stored);
+      return stored;
+    }
+    return null;
+  }
+
+  async deleteSession(sessionId: string): Promise<void> {
+    this.sessions.delete(sessionId);
+    await this.state.storage.delete(sessionId);
   }
 }
 
@@ -484,7 +516,7 @@ export class SonicCryptoMCPServer {
       await this.cache.set(cacheKey, data, ttl);
       
       return data;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Failed to fetch from CoinDesk API: ${error.message}`);
     }
   }
@@ -517,7 +549,7 @@ export class SonicCryptoMCPServer {
         timestamp: new Date().toISOString(),
         summary: `Latest tick data for ${instruments.length} instruments from ${market} index`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -550,7 +582,7 @@ export class SonicCryptoMCPServer {
         data: data.Data || data,
         summary: `${limit} days of OHLCV data for ${instrument} from ${market}`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -582,7 +614,7 @@ export class SonicCryptoMCPServer {
         data: data.Data || data,
         summary: `${limit} hours of OHLCV data for ${instrument}`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -616,7 +648,7 @@ export class SonicCryptoMCPServer {
         data: data.Data || data,
         summary: `${limit} ${aggregate}-minute intervals for ${instrument}`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -648,7 +680,7 @@ export class SonicCryptoMCPServer {
         data: data.Data || data,
         summary: `DA Fixings for ${instrument} at ${close_time} ${timezone}`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -684,7 +716,7 @@ export class SonicCryptoMCPServer {
         data: data.Data || data,
         summary: `${data.Data?.length || 0} index updates for ${instrument} since ${new Date(after_ts * 1000).toISOString()}`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -714,7 +746,7 @@ export class SonicCryptoMCPServer {
         data: data.Data || data,
         summary: `Metadata for ${instruments.length} instruments in ${market}`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -738,7 +770,7 @@ export class SonicCryptoMCPServer {
         available_markets: this.availableMarkets,
         summary: market ? `Details for ${market} market` : `All available markets`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -770,7 +802,7 @@ export class SonicCryptoMCPServer {
         opportunities,
         summary: `${analysis_type} opportunities analysis for Sonic ecosystem (${risk_level} risk level)`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -804,7 +836,7 @@ export class SonicCryptoMCPServer {
         sentiment_analysis: sentiment,
         summary: `Market sentiment analysis for Sonic ecosystem based on ${sentiment_sources.join(', ')}`
       }, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -815,7 +847,7 @@ export class SonicCryptoMCPServer {
 
   // Helper methods for Sonic-specific analysis
   private async analyzeSonicOpportunities(data: any, analysisType: string, timeframe: string, riskLevel: string): Promise<any> {
-    const opportunities = {
+    const opportunities: any = {
       yield_farming: [],
       arbitrage: [],
       trend_analysis: [],
@@ -909,7 +941,7 @@ export class SonicCryptoMCPServer {
 
   private async calculateSentiment(data: any, sources: string[], timeframe: string): Promise<any> {
     // Mock sentiment calculation
-    const sentiment = {
+    const sentiment: any = {
       overall_score: 0.75, // 0-1 scale
       confidence: 0.85,
       sources_analysis: {}
@@ -988,7 +1020,7 @@ export class SonicCryptoMCPServer {
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify({
         success: false,
         error: error.message,
@@ -1035,7 +1067,7 @@ export default {
       }
 
       if (url.pathname === '/tools/call' && request.method === 'POST') {
-        const body = await request.json();
+        const body: any = await request.json();
         const { name, arguments: args } = body;
         
         const result = await mcpServer.callTool(name, args);
@@ -1059,6 +1091,9 @@ export default {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
+
+      // Dashboard endpoint - Enhanced version with chat and background animation
+      if (url.pathname === '/dashboard' || url.pathname === '/') {
 
       // Documentation endpoint
       if (url.pathname === '/' || url.pathname === '/docs') {
@@ -1099,7 +1134,7 @@ export default {
 
       return new Response('Not Found', { status: 404, headers: corsHeaders });
 
-    } catch (error) {
+    } catch (error: any) {
       return new Response(JSON.stringify({
         error: 'Internal Server Error',
         message: error.message,
@@ -1109,8 +1144,22 @@ export default {
         headers: { 'Content-Type': 'application/json' }
       });
     }
+  },
+
+  // Queue handler for background crypto data processing
+  async queue(batch: any, env: any): Promise<void> {
+    for (const message of batch.messages) {
+      try {
+        console.log('Processing queue message:', message.body);
+        // Process crypto data updates here
+        message.ack();
+      } catch (error) {
+        console.error('Queue processing error:', error);
+        message.retry();
+      }
+    }
   }
 };
 
-// Durable Object export for caching
-export { CryptoDataCache };
+// Durable Object exports
+export { CryptoDataCache, MCPSessionManager };
