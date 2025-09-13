@@ -2020,36 +2020,146 @@ export default {
         });
       }
 
+      // Helper function for tool examples
+      function getToolExamples(toolName: string) {
+        const examples: any = {
+          'get_latest_index_tick': [
+            {
+              description: 'Get current S-USD and BTC prices',
+              request: { market: 'cadli', instruments: ['S-USD', 'BTC-USD'] },
+              curl: `curl -X POST "${url.origin}/tools/call" -H "Content-Type: application/json" -d '{"name": "get_latest_index_tick", "arguments": {"market": "cadli", "instruments": ["S-USD", "BTC-USD"]}}'`
+            }
+          ],
+          'get_historical_ohlcv_daily': [
+            {
+              description: 'Get 30 days of BTC daily data',
+              request: { market: 'cadli', instrument: 'BTC-USD', limit: 30 },
+              curl: `curl -X POST "${url.origin}/tools/call" -H "Content-Type: application/json" -d '{"name": "get_historical_ohlcv_daily", "arguments": {"market": "cadli", "instrument": "BTC-USD", "limit": 30}}'`
+            }
+          ],
+          'analyze_sonic_market_sentiment': [
+            {
+              description: 'Analyze market sentiment from price and volume',
+              request: { sentiment_sources: ['price_action', 'volume_analysis'] },
+              curl: `curl -X POST "${url.origin}/tools/call" -H "Content-Type: application/json" -d '{"name": "analyze_sonic_market_sentiment", "arguments": {"sentiment_sources": ["price_action", "volume_analysis"]}}'`
+            }
+          ],
+          'search_sonic_opportunities': [
+            {
+              description: 'Find yield farming opportunities with medium risk',
+              request: { analysis_type: 'yield_farming', risk_level: 'medium' },
+              curl: `curl -X POST "${url.origin}/tools/call" -H "Content-Type: application/json" -d '{"name": "search_sonic_opportunities", "arguments": {"analysis_type": "yield_farming", "risk_level": "medium"}}'`
+            }
+          ]
+        };
+        return examples[toolName] || [{
+          description: `Example usage for ${toolName}`,
+          request: {},
+          curl: `curl -X POST "${url.origin}/tools/call" -H "Content-Type: application/json" -d '{"name": "${toolName}", "arguments": {}}'`
+        }];
+      }
+
       // Documentation endpoint
       if (url.pathname === '/' || url.pathname === '/docs') {
+        const tools = mcpServer.getTools();
         const documentation = {
           name: 'Sonic Crypto MCP Server',
           version: '1.0.0',
-          description: 'MCP server providing comprehensive cryptocurrency market data for Sonic Labs and ecosystem analysis',
+          description: 'Advanced MCP server providing comprehensive cryptocurrency market data, AI-powered analysis, and DeFi intelligence for the Sonic Labs ecosystem',
+          author: 'Sonic Labs Community',
+          license: 'MIT',
+          repository: 'https://github.com/mintedmaterial/sonic-crypto-mcp-server',
+          dashboard_url: `${url.origin}/dashboard`,
           endpoints: {
-            '/tools/list': 'GET - List all available tools',
-            '/tools/call': 'POST - Execute a tool with arguments',
-            '/health': 'GET - Health check',
-            '/docs': 'GET - This documentation'
+            '/': 'GET - API documentation (this page)',
+            '/docs': 'GET - Detailed API documentation',
+            '/dashboard': 'GET - Interactive Sonic Crypto Dashboard with chat',
+            '/health': 'GET - Health check and service status',
+            '/tools/list': 'GET - List all available MCP tools',
+            '/tools/call': 'POST - Execute MCP tool with arguments'
           },
-          tools: mcpServer.getTools().map(tool => ({
+          features: [
+            '🚀 Real-time cryptocurrency price tracking',
+            '🧠 AI-powered market sentiment analysis',
+            '💰 Yield farming opportunity detection',
+            '📊 Historical OHLC data analysis',
+            '🔍 Cross-exchange arbitrage detection',
+            '📈 Technical indicator calculations',
+            '⚡ Interactive web dashboard with chat',
+            '🎯 Sonic ecosystem specialized tools',
+            '📡 WebSocket-like real-time updates',
+            '🔐 Enterprise-grade security and caching'
+          ],
+          tools_overview: {
+            total_tools: tools.length,
+            categories: {
+              'Price Data': ['get_latest_index_tick'],
+              'Historical Analysis': ['get_historical_ohlcv_daily', 'get_historical_ohlcv_hourly', 'get_historical_ohlcv_minutes'],
+              'Market Intelligence': ['analyze_sonic_market_sentiment', 'search_sonic_opportunities'],
+              'Reference Data': ['get_instrument_metadata', 'get_available_markets'],
+              'Specialized': ['get_da_fixings', 'get_index_updates_by_timestamp']
+            }
+          },
+          tools: tools.map(tool => ({
             name: tool.name,
-            description: tool.description
+            description: tool.description,
+            category: tool.name.includes('historical') ? 'Historical Analysis' :
+                     tool.name.includes('sentiment') || tool.name.includes('opportunities') ? 'Market Intelligence' :
+                     tool.name.includes('metadata') || tool.name.includes('markets') ? 'Reference Data' :
+                     tool.name.includes('latest') ? 'Price Data' : 'Specialized',
+            input_schema: tool.inputSchema,
+            examples: getToolExamples(tool.name)
           })),
           data_sources: [
             'CoinDesk API - Real-time and historical cryptocurrency data',
             'Index data from CADLI, CCIX, and other CoinDesk indices',
             'OHLCV data at minute, hourly, and daily intervals',
             'DA Fixings for end-of-day pricing',
-            'Tick-level index updates and metadata'
+            'Tick-level index updates and metadata',
+            'AI-powered sentiment analysis engine',
+            'DeFi protocol yield data aggregation'
           ],
-          sonic_features: [
-            'Sonic ecosystem token tracking (S, SONIC)',
-            'Yield farming opportunity analysis',
-            'Cross-DEX arbitrage detection',
-            'Market sentiment analysis',
-            'Risk assessment tools'
-          ]
+          sonic_ecosystem: {
+            supported_tokens: ['S-USD', 'SONIC-USD', 'ETH-USD', 'BTC-USD', 'USDC-USD', 'USDT-USD'],
+            features: [
+              'Sonic ecosystem token tracking and analysis',
+              'Yield farming opportunity detection across Sonic DEXs',
+              'Cross-exchange arbitrage analysis',
+              'Market sentiment analysis with AI',
+              'Risk assessment and portfolio optimization',
+              'Real-time price alerts and notifications'
+            ],
+            defi_protocols: [
+              'Sonic DEX - Primary Sonic ecosystem exchange',
+              'SpookySwap - Cross-chain compatibility',
+              'Various yield farming pools',
+              'Liquidity mining opportunities'
+            ]
+          },
+          api_usage: {
+            authentication: 'No API key required for basic usage',
+            rate_limits: 'Intelligent rate limiting with caching',
+            response_format: 'JSON with standardized error handling',
+            cors: 'Enabled for browser-based applications',
+            examples: {
+              list_tools: `curl "${url.origin}/tools/list"`,
+              health_check: `curl "${url.origin}/health"`,
+              get_prices: `curl -X POST "${url.origin}/tools/call" -H "Content-Type: application/json" -d '{"name": "get_latest_index_tick", "arguments": {"market": "cadli", "instruments": ["S-USD"]}}'`
+            }
+          },
+          deployment: {
+            platform: 'Cloudflare Workers',
+            architecture: 'Serverless with edge computing',
+            scaling: 'Auto-scaling with global distribution',
+            storage: 'Durable Objects + KV + R2 for multi-tier caching',
+            monitoring: 'Analytics Engine integration'
+          },
+          getting_started: {
+            step1: 'Visit the dashboard at /dashboard for interactive exploration',
+            step2: 'Try the API endpoints directly with curl or your favorite HTTP client',
+            step3: 'Integrate MCP tools into your applications using the /tools/call endpoint',
+            step4: 'Explore historical data and AI-powered insights'
+          }
         };
 
         return new Response(JSON.stringify(documentation, null, 2), {
