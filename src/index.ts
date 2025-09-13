@@ -1093,7 +1093,932 @@ export default {
       }
 
       // Dashboard endpoint - Enhanced version with chat and background animation
-      if (url.pathname === '/dashboard' || url.pathname === '/') {
+      if (url.pathname === '/dashboard') {
+        const dashboardHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonic Crypto Dashboard</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-accent: #a855f7;
+            --bg-primary: rgba(0, 0, 0, 0.8);
+            --bg-secondary: rgba(255, 255, 255, 0.1);
+            --bg-card: rgba(255, 255, 255, 0.15);
+            --border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #fff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p { font-size: 1.25rem; opacity: 0.8; }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .nav-tab {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .nav-tab:hover {
+            background: var(--primary-dark);
+            color: white;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.25rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: var(--bg-card);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .price-item {
+            margin: 1rem 0;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .price-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .price-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .price-change {
+            font-weight: 600;
+        }
+
+        .price-change.positive { color: var(--success); }
+        .price-change.negative { color: var(--danger); }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .chat-container {
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 1rem;
+            border-radius: 12px;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .chat-input-container {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success { background: var(--success); }
+        .notification.error { background: var(--danger); }
+        .notification.info { background: var(--primary); }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .header h1 { font-size: 2rem; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .nav-tabs { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="background-canvas"></canvas>
+
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Sonic Crypto Dashboard</h1>
+            <p>AI-powered real-time market intelligence for the Sonic ecosystem</p>
+        </div>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" id="dashboardBtn" onclick="switchView('dashboard')">📊 Dashboard</div>
+            <div class="nav-tab" id="chatBtn" onclick="switchView('chat')">💬 AI Chat</div>
+            <div class="nav-tab" id="analyticsBtn" onclick="switchView('analytics')">📈 Analytics</div>
+        </div>
+
+        <div class="loading" id="loading">🔄 Loading Sonic data...</div>
+
+        <!-- Dashboard View -->
+        <div id="dashboard" class="view active" style="display: none;">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>📊 Live Prices</h3>
+                    <div id="prices"></div>
+                    <button class="btn" onclick="loadPrices()">🔄 Refresh</button>
+                </div>
+
+                <div class="card">
+                    <h3>🎯 Market Sentiment</h3>
+                    <div id="sentiment"></div>
+                    <button class="btn" onclick="loadSentiment()">🧠 Analyze</button>
+                </div>
+
+                <div class="card">
+                    <h3>💰 Yield Opportunities</h3>
+                    <div id="opportunities"></div>
+                    <button class="btn" onclick="loadOpportunities()">🔍 Find</button>
+                </div>
+
+                <div class="card">
+                    <h3>⚡ MCP Tools</h3>
+                    <div id="tools"></div>
+                    <button class="btn" onclick="loadTools()">📋 List</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat View -->
+        <div id="chat" class="view">
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        👋 Hello! I'm your Sonic ecosystem AI assistant. Ask me about:
+                        <br>• Live cryptocurrency prices
+                        <br>• Market sentiment analysis
+                        <br>• Yield farming opportunities
+                        <br>• Technical analysis
+                        <br>• DeFi protocols
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Ask about Sonic ecosystem..." onkeypress="handleChatKeypress(event)">
+                    <button class="btn" onclick="sendMessage()">💫 Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics View -->
+        <div id="analytics" class="view">
+            <div class="analytics-grid">
+                <div class="card">
+                    <h3>📈 Price Charts</h3>
+                    <div id="priceCharts">Interactive price charts coming soon...</div>
+                </div>
+                <div class="card">
+                    <h3>📊 Volume Analysis</h3>
+                    <div id="volumeAnalysis">Volume trend analysis coming soon...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let dashboardData = {
+            prices: [],
+            sentiment: {},
+            opportunities: [],
+            tools: []
+        };
+
+        // Background animation
+        function initBackground() {
+            const canvas = document.getElementById('background-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            const logos = [];
+            const logoCount = 15;
+
+            // Create falling logo objects
+            for (let i = 0; i < logoCount; i++) {
+                logos.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 30 + 20,
+                    speed: Math.random() * 2 + 1,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 4,
+                    opacity: Math.random() * 0.3 + 0.1
+                });
+            }
+
+            function drawLogo(x, y, size, rotation, opacity) {
+                ctx.save();
+                ctx.globalAlpha = opacity;
+                ctx.translate(x, y);
+                ctx.rotate(rotation * Math.PI / 180);
+
+                // Draw Sonic "S" logo
+                ctx.font = \`\${size}px Arial\`;
+                ctx.fillStyle = '#6366f1';
+                ctx.textAlign = 'center';
+                ctx.fillText('S', 0, size/3);
+
+                ctx.restore();
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                logos.forEach(logo => {
+                    drawLogo(logo.x, logo.y, logo.size, logo.rotation, logo.opacity);
+
+                    logo.y += logo.speed;
+                    logo.rotation += logo.rotationSpeed;
+
+                    if (logo.y > canvas.height + logo.size) {
+                        logo.y = -logo.size;
+                        logo.x = Math.random() * canvas.width;
+                    }
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        // API client
+        class APIClient {
+            constructor(baseUrl = '') {
+                this.baseUrl = baseUrl;
+                this.cache = new Map();
+                this.cacheTimeout = 30000;
+            }
+
+            async callAPI(endpoint, params = {}) {
+                const cacheKey = \`\${endpoint}-\${JSON.stringify(params)}\`;
+                const cached = this.cache.get(cacheKey);
+
+                if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+                    console.log(\`📦 Cache hit for \${endpoint}\`);
+                    return cached.data;
+                }
+
+                try {
+                    console.log(\`🌐 API Call: \${endpoint}\`, params);
+
+                    let url = \`\${this.baseUrl}\${endpoint}\`;
+
+                    if (endpoint.startsWith('/tools/call')) {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(params)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
+                        }
+
+                        const result = await response.text();
+                        console.log(\`✅ API Response for \${endpoint}:\`, result);
+
+                        this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+                        return result;
+                    } else {
+                        const queryParams = new URLSearchParams();
+                        Object.entries(params).forEach(([key, value]) => {
+                            queryParams.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
+                        });
+                        if (queryParams.toString()) {
+                            url += '?' + queryParams.toString();
+                        }
+
+                        const response = await fetch(url);
+                        const result = await response.json();
+
+                        this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+                        return result;
+                    }
+                } catch (error) {
+                    console.error(\`❌ API call failed for \${endpoint}:\`, error);
+                    throw error;
+                }
+            }
+
+            async callTool(name, args = {}) {
+                try {
+                    console.log('MCP Tool Call:', name, args);
+                    const response = await fetch(\`\${this.baseUrl}/tools/call\`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, arguments: args })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
+                    }
+
+                    const result = await response.json();
+                    console.log('MCP Tool Result:', result);
+                    return result;
+                } catch (error) {
+                    console.error(\`MCP call failed for \${name}:\`, error);
+                    return { error: { code: -1, message: error.message } };
+                }
+            }
+        }
+
+        const apiClient = new APIClient(window.location.origin);
+
+        // UI Functions
+        function switchView(viewName) {
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(\`\${viewName}Btn\`).classList.add('active');
+
+            // Update views
+            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+            document.getElementById(viewName).classList.add('active');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = \`notification \${type}\`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        // Data loading functions
+        async function loadPrices() {
+            try {
+                const result = await apiClient.callTool('get_latest_index_tick', {
+                    market: 'cadli',
+                    instruments: ['S-USD', 'BTC-USD', 'ETH-USD', 'USDC-USD']
+                });
+
+                if (result.success && result.data) {
+                    dashboardData.prices = result.data;
+                    updatePricesUI();
+                } else {
+                    throw new Error('No price data available');
+                }
+            } catch (error) {
+                console.error('Failed to load prices:', error);
+                document.getElementById('prices').innerHTML = '<p>❌ Error loading prices</p>';
+            }
+        }
+
+        function updatePricesUI() {
+            const pricesContainer = document.getElementById('prices');
+            const icons = ['🔥', '₿', '⟠', '💵'];
+
+            if (!dashboardData.prices || Object.keys(dashboardData.prices).length === 0) {
+                pricesContainer.innerHTML = '<p>No price data available</p>';
+                return;
+            }
+
+            let html = '';
+            Object.entries(dashboardData.prices).forEach(([instrument, priceData], index) => {
+                const price = priceData.VALUE?.VALUE || priceData.value || 'N/A';
+                const change = priceData.MOVING_24_HOUR?.CHANGE_PERCENT || 0;
+                const changeClass = change >= 0 ? 'positive' : 'negative';
+
+                html += \`
+                    <div class="price-item">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <span class="card-icon">\${icons[index]}</span>
+                            <span class="card-title">\${instrument}</span>
+                        </div>
+                        <div class="price-value">$\${price.toLocaleString()}</div>
+                        <div class="price-change \${changeClass}">
+                            \${change >= 0 ? '+' : ''}\${change.toFixed(2)}% (24h)
+                        </div>
+                        \${priceData?.volume ? \`<div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                            Volume: $\${(priceData.volume || 0).toLocaleString()}
+                        </div>\` : ''}
+                    </div>
+                \`;
+            });
+
+            pricesContainer.innerHTML = html;
+        }
+
+        async function loadSentiment() {
+            try {
+                const result = await apiClient.callTool('analyze_sonic_market_sentiment', {
+                    sentiment_sources: ['price_action', 'volume_analysis']
+                });
+
+                if (result.success && result.sentiment_analysis) {
+                    dashboardData.sentiment = result.sentiment_analysis;
+                    updateSentimentUI();
+                } else {
+                    throw new Error('Sentiment analysis unavailable');
+                }
+            } catch (error) {
+                console.error('Failed to load sentiment:', error);
+                document.getElementById('sentiment').innerHTML = '<p>❌ Error loading sentiment</p>';
+            }
+        }
+
+        function updateSentimentUI() {
+            const sentimentContainer = document.getElementById('sentiment');
+            const sentiment = dashboardData.sentiment;
+
+            if (!sentiment || !sentiment.overall_score) {
+                sentimentContainer.innerHTML = '<p>No sentiment data available</p>';
+                return;
+            }
+
+            const score = (sentiment.overall_score * 10).toFixed(1);
+            const confidence = ((sentiment.confidence || 0.85) * 100).toFixed(0);
+            const sentimentColor = sentiment.overall_score > 0.6 ? 'var(--success)' :
+                                 sentiment.overall_score > 0.4 ? 'var(--warning)' : 'var(--danger)';
+            const sentimentText = sentiment.overall_score > 0.6 ? 'Bullish' :
+                                sentiment.overall_score > 0.4 ? 'Neutral' : 'Bearish';
+
+            sentimentContainer.innerHTML = \`
+                <div style="text-align: center; margin: 1.5rem 0;">
+                    <div style="font-size: 2rem; color: \${sentimentColor};">\${score}/10</div>
+                    <div style="margin: 0.5rem 0;">
+                        <div style="font-weight: 600; color: \${sentimentColor};">\${sentimentText}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Confidence: \${confidence}%</div>
+                    </div>
+                </div>
+                \${sentiment.key_factors && sentiment.key_factors.length > 0 ? \`
+                    <div style="margin-top: 1rem;">
+                        <h4 style="margin-bottom: 0.5rem;">Key Factors:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            \${sentiment.key_factors.slice(0, 3).map(factor => \`<li>• \${factor}</li>\`).join('')}
+                        </ul>
+                    </div>
+                \` : ''}
+            \`;
+        }
+
+        async function loadOpportunities() {
+            try {
+                const result = await apiClient.callTool('search_sonic_opportunities', {
+                    analysis_type: 'yield_farming',
+                    risk_level: 'medium'
+                });
+
+                if (result.success && result.opportunities) {
+                    dashboardData.opportunities = result.opportunities;
+                    updateOpportunitiesUI();
+                } else {
+                    throw new Error('No opportunities available');
+                }
+            } catch (error) {
+                console.error('Failed to load opportunities:', error);
+                document.getElementById('opportunities').innerHTML = '<p>❌ Error loading opportunities</p>';
+            }
+        }
+
+        function updateOpportunitiesUI() {
+            const opportunitiesContainer = document.getElementById('opportunities');
+
+            if (!dashboardData.opportunities || dashboardData.opportunities.length === 0) {
+                opportunitiesContainer.innerHTML = '<p>No opportunities found</p>';
+                return;
+            }
+
+            let html = '';
+            dashboardData.opportunities.slice(0, 3).map(opp => \`
+                <div class="price-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="color: var(--text-primary);">\${opp.protocol || opp.pool_name || 'DeFi Pool'}</strong>
+                        <span style="color: var(--success); font-weight: 600;">\${opp.apy || opp.yield}% APY</span>
+                    </div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                        Risk: \${opp.risk_level || opp.risk} | TVL: $\${(opp.tvl || 0).toLocaleString()}
+                    </div>
+                </div>
+            \`).join('');
+
+            opportunitiesContainer.innerHTML = html;
+        }
+
+        async function loadTools() {
+            try {
+                const result = await apiClient.callAPI('/tools/list');
+                if (result.tools) {
+                    dashboardData.tools = result.tools;
+                    updateToolsUI();
+                } else {
+                    throw new Error('No tools available');
+                }
+            } catch (error) {
+                console.error('Failed to load tools:', error);
+                document.getElementById('tools').innerHTML = '<p>❌ Error loading tools</p>';
+            }
+        }
+
+        function updateToolsUI() {
+            const toolsContainer = document.getElementById('tools');
+
+            if (!dashboardData.tools || dashboardData.tools.length === 0) {
+                toolsContainer.innerHTML = '<p>No tools available</p>';
+                return;
+            }
+
+            let html = \`<p><strong>\${dashboardData.tools.length} MCP tools available:</strong></p>\`;
+            html += '<div style="margin-top: 1rem;">';
+            dashboardData.tools.slice(0, 5).forEach(tool => {
+                html += \`<div style="margin: 0.5rem 0; padding: 0.5rem; background: var(--bg-secondary); border-radius: 8px; font-size: 0.875rem;">
+                    <strong>\${tool.name}</strong>
+                    <br><span style="color: var(--text-secondary);">\${tool.description}</span>
+                </div>\`;
+            });
+            html += '</div>';
+
+            toolsContainer.innerHTML = html;
+        }
+
+        // Chat functionality
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            addMessageToChat(message, 'user');
+            input.value = '';
+
+            try {
+                const response = await processMessage(message);
+                addMessageToChat(response, 'assistant');
+            } catch (error) {
+                addMessageToChat('Sorry, I encountered an error processing your request.', 'assistant');
+            }
+        }
+
+        function addMessageToChat(message, role) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = \`message \${role}\`;
+
+            messageDiv.innerHTML = \`
+                <div style="margin-bottom: 0.5rem;">
+                    \${text}
+                </div>
+            \`.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+             .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function processMessage(message) {
+            const lowerMessage = message.toLowerCase();
+
+            if (lowerMessage.includes('price')) {
+                const result = await apiClient.callTool('get_latest_index_tick', {
+                    market: 'cadli',
+                    instruments: ['S-USD', 'BTC-USD', 'ETH-USD', 'USDC-USD']
+                });
+
+                if (result.success && result.data) {
+                    const prices = Object.entries(result.data).map(([instrument, data]) =>
+                        \`\${instrument}: $\${data.value?.toLocaleString() || 'N/A'}\`
+                    );
+                    return \`📈 **Current Prices:**\\n\${prices}\`;
+                }
+            }
+
+            if (lowerMessage.includes('sentiment')) {
+                const result = await apiClient.callTool('analyze_sonic_market_sentiment', {
+                    sentiment_sources: ['price_action', 'volume_analysis']
+                });
+
+                if (result.success && result.sentiment_analysis) {
+                    const sentiment = result.sentiment_analysis;
+                    const score = (sentiment.overall_score * 10).toFixed(1);
+                    return \`📊 **\${report.title}**\\n\\n\${report.executive_summary}\\n\\n\${report.sentiment_analysis ? \`**Sentiment:** \${report.sentiment_analysis.overall_score}/10 (\${report.sentiment_analysis.confidence}% confidence)\` : ''}\`;
+                }
+            }
+
+            if (lowerMessage.includes('yield') || lowerMessage.includes('opportunity')) {
+                const result = await apiClient.callTool('search_sonic_opportunities', {
+                    analysis_type: 'yield_farming'
+                });
+
+                if (result.success && result.opportunities) {
+                    const sentiment = result.sentiment_analysis;
+                    const score = (sentiment.overall_score * 10).toFixed(1);
+                    const desc = sentiment.overall_score > 0.6 ? 'Bullish' : sentiment.overall_score > 0.4 ? 'Neutral' : 'Bearish';
+                    return \`🎯 **Market Sentiment:** \${desc} (\${score}/10)\\n\\nConfidence: \${sentiment.confidence || 75}%\\n\${sentiment.key_factors ? '\\nKey factors: ' + sentiment.key_factors.slice(0, 3).join(', ') : ''}\`;
+                }
+            }
+
+            if (lowerMessage.includes('opportunities') || lowerMessage.includes('defi')) {
+                const result = await apiClient.callTool('search_sonic_opportunities', {
+                    analysis_type: 'yield_farming'
+                });
+
+                if (result.success && result.opportunities) {
+                    const topOpps = result.opportunities.slice(0, 3).map(opp =>
+                        \`• **\${opp.protocol || opp.pool_name}**: \${opp.apy || opp.yield}% APY (Risk: \${opp.risk_level || opp.risk})\`
+                    );
+                    return \`💰 **Top Yield Opportunities:**\\n\${topOpps}\`;
+                }
+            }
+
+            return \`I can help you with:
+            \\n• **Live prices** - Ask "What are the current prices?"
+            \\n• **Market sentiment** - Ask "What's the market sentiment?"
+            \\n• **Yield opportunities** - Ask "Show me yield farming opportunities"
+            \\n• **DeFi analysis** - Ask "What are the best DeFi opportunities?"
+            \\n\\nTry asking about any of these topics!\`;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'notification';
+            toast.style.cssText = \`
+                position: fixed; top: 2rem; right: 2rem; z-index: 1000; padding: 1rem 1.5rem;
+                border-radius: 12px; color: white; font-weight: 600; transform: translateX(100%);
+                transition: transform 0.3s ease;
+                background: \${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--text-accent)'};
+            \`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.style.transform = 'translateX(0)', 100);
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Initialize dashboard
+        async function initDashboard() {
+            try {
+                showToast('🚀 Loading dashboard data...', 'info');
+
+                await Promise.all([
+                    loadPrices(),
+                    loadSentiment(),
+                    loadOpportunities(),
+                    loadTools()
+                ]);
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+
+                showToast('✅ Dashboard loaded successfully!', 'success');
+            } catch (error) {
+                console.error('Dashboard initialization failed:', error);
+                showToast('❌ Failed to load dashboard', 'error');
+
+                // Show dashboard anyway with error states
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+            }
+        }
+
+        // Auto-refresh functionality
+        function startAutoRefresh() {
+            setInterval(async () => {
+                try {
+                    if (document.getElementById('dashboard').classList.contains('active')) {
+                        console.log('🔄 Auto-refreshing data...');
+                        await Promise.all([
+                            loadPrices(),
+                            loadSentiment(),
+                            loadOpportunities()
+                        ]);
+                    }
+                } catch (error) {
+                    console.error('Auto-refresh failed:', error);
+                }
+            }, 30000); // Refresh every 30 seconds
+        }
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            initBackground();
+            initDashboard();
+            startAutoRefresh();
+        });
+    </script>
+</body>
+</html>`;
+
+        return new Response(dashboardHTML, {
+          headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+        });
+      }
 
       // Documentation endpoint
       if (url.pathname === '/' || url.pathname === '/docs') {
