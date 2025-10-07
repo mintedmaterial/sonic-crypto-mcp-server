@@ -28,12 +28,12 @@ export class AIService {
     } = {}
   ): Promise<AIResponse> {
     try {
-      const response = await this.env.AI.run(model, {
+      const response = await this.env.AI.run(model as any, {
         messages,
         max_tokens: options.max_tokens || 1024,
         temperature: options.temperature || 0.7,
         ...options,
-      });
+      } as any);
 
       return response as AIResponse;
     } catch (error) {

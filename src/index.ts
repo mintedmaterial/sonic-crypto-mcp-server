@@ -44,8 +44,8 @@ export default {
     }
 
     try {
-      // ===== Dashboard =====
-      if (path === '/' || path === '/dashboard') {
+      // ===== Root path - Dashboard UI =====
+      if (path === '/') {
         return new Response(getSonicDashboardHTML(), {
           headers: { ...corsHeaders, 'Content-Type': 'text/html' }
         });
@@ -255,13 +255,14 @@ export default {
       }
 
       // API documentation
-      if (path === '/docs') {
+      if (path === '/api/docs') {
         return new Response(JSON.stringify({
           name: "Sonic Crypto MCP Server",
           version: "2.0.0",
           description: "Advanced MCP server for cryptocurrency data and AI analysis",
+          dashboard: "https://ss.srvcflo.com/",
           endpoints: {
-            "/": "Sonic-themed Dashboard with AI Chat",
+            "/": "Sonic-themed Dashboard with AI Chat (SPA)",
             "/mcp/tools/list": "List all MCP tools",
             "/mcp/tools/call": "Execute MCP tool (POST)",
             "/api/price": "Get latest cryptocurrency prices",
@@ -272,7 +273,7 @@ export default {
             "/api/refresh-data": "Refresh recent data (POST)",
             "/api/init-db": "Initialize database schema (POST)",
             "/health": "Health check with service status",
-            "/docs": "API documentation (this page)"
+            "/api/docs": "API documentation (this page)"
           },
           tools: ALL_TOOLS.map(t => ({
             name: t.name,
