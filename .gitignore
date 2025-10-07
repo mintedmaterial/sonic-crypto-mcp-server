@@ -58,8 +58,25 @@ temp/
 
 # Local configuration
 .claude/
+.mcp.json
 worker-configuration.d.ts
 
 # Package manager lock files (keep package-lock.json but ignore others)
 yarn.lock
 pnpm-lock.yaml
+
+# Screenshots and images
+screenshots/
+*.PNG
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Backup files
+*.backup
+*.old
+*~
+
+# TypeScript build artifacts
+*.tsbuildinfo

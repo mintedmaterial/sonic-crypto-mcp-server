@@ -1,0 +1,63 @@
+// Environment and Cloudflare bindings configuration
+
+export interface Env {
+  // AI Bindings
+  AI: Ai;
+
+  // KV Namespaces
+  SONIC_CACHE: KVNamespace;
+  API_RATE_LIMIT: KVNamespace;
+
+  // Durable Objects
+  CRYPTO_CACHE: DurableObjectNamespace;
+  MCP_SESSION: DurableObjectNamespace;
+
+  // R2 Buckets
+  HISTORICAL_DATA: R2Bucket;
+  MARKET_REPORTS: R2Bucket;
+
+  // D1 Database
+  CONFIG_DB: D1Database;
+
+  // Analytics Engine
+  ANALYTICS: AnalyticsEngineDataset;
+
+  // Queue
+  CRYPTO_QUEUE: Queue;
+
+  // Workflows
+  DATA_UPDATE_WORKFLOW?: Workflow;
+  DATA_SEEDING_WORKFLOW?: Workflow;
+
+  // Secrets
+  COINDESK_API_KEY: string;
+  AI_GATEWAY_TOKEN?: string;
+  ANTHROPIC_API_KEY?: string;
+}
+
+export const CACHE_TTL = {
+  REALTIME: 10,      // 10 seconds for real-time data
+  MINUTES: 60,       // 1 minute for minute data
+  HOURLY: 300,       // 5 minutes for hourly data
+  DAILY: 3600,       // 1 hour for daily data
+  WEEKLY: 86400,     // 1 day for weekly data
+} as const;
+
+export const API_ENDPOINTS = {
+  COINDESK_BASE: 'https://production.api.coindesk.com/v2',
+  INDEX_VALUES: '/indices/values',
+  HISTORICAL_DAYS: '/index/cc/v1/historical/days',
+  HISTORICAL_HOURS: '/index/cc/v1/historical/hours',
+  HISTORICAL_MINUTES: '/index/cc/v1/historical/minutes',
+} as const;
+
+export const DEFAULT_INSTRUMENTS = [
+  'BTC-USD',
+  'ETH-USD',
+  'S-USD',
+  'SONIC-USD',
+  'USDC-USD',
+  'USDT-USD',
+] as const;
+
+export const DEFAULT_MARKET = 'cadli' as const;

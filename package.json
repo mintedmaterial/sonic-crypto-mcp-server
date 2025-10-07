@@ -1,8 +1,8 @@
 {
   "name": "sonic-crypto-mcp-server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "Advanced Model Context Protocol server for cryptocurrency market data and AI analysis on the Sonic blockchain",
+  "main": "src/index.ts",
   "scripts": {
     "build": "tsc",
     "dev": "wrangler dev",
@@ -14,10 +14,29 @@
     "setup": "wrangler types",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "cryptocurrency",
+    "sonic",
+    "blockchain",
+    "defi",
+    "cloudflare",
+    "workers",
+    "ai",
+    "typescript"
+  ],
+  "author": "mintedmaterial",
   "license": "ISC",
   "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mintedmaterial/sonic-crypto-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mintedmaterial/sonic-crypto-mcp-server/issues"
+  },
+  "homepage": "https://ss.srvcflo.com",
   "dependencies": {
     "@cloudflare/workers-types": "^4.20250911.0",
     "@modelcontextprotocol/sdk": "^1.17.5",

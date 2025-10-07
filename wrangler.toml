@@ -77,10 +77,25 @@ cpu_ms = 50000
 [build]
 command = "npm run build"
 
-# Custom domains (configure after setting up domain in Cloudflare)
-# [[routes]]
-# pattern = "sonic-crypto-api.yourdomain.com/*"  
-# zone_name = "yourdomain.com"
+# Custom domain configuration
+[[routes]]
+pattern = "ss.srvcflo.com/*"
+zone_name = "srvcflo.com"
+
+# Workers Logs configuration
+[observability.logs]
+enabled = true
+
+# Workflows configuration
+[[workflows]]
+binding = "DATA_UPDATE_WORKFLOW"
+name = "sonic-data-update"
+class_name = "DataUpdateWorkflow"
+
+[[workflows]]
+binding = "DATA_SEEDING_WORKFLOW"
+name = "sonic-data-seeding"
+class_name = "DataSeedingWorkflow"
 
 # Durable Objects migrations
 [[migrations]]
