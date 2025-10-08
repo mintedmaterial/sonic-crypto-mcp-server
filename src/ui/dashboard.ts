@@ -408,9 +408,70 @@ export function getSonicDashboardHTML(): string {
   </div>
 
   <script>
-    // Logo rainfall animation
+    // Logo rainfall animation with DEX/NFT logos
     const canvas = document.getElementById('logo-rain');
     const ctx = canvas.getContext('2d');
+
+    // Logo URLs from Sonic ecosystem
+    const logoPngs = [
+      'https://dexscreener.com/favicon.png',
+      'https://dd.dexscreener.com/ds-data/dexes/sonic-market.png',
+      'https://dd.dexscreener.com/ds-data/dexes/sonic-swap.png',
+      'https://dd.dexscreener.com/ds-data/dexes/metropolis.png',
+      'https://dd.dexscreener.com/ds-data/dexes/equalizer.png',
+      'https://dd.dexscreener.com/ds-data/dexes/shadow-exchange.png',
+      'https://dd.dexscreener.com/ds-data/dexes/wagmi.png',
+      'https://dd.dexscreener.com/ds-data/dexes/beets.png',
+      'https://dd.dexscreener.com/ds-data/dexes/spookyswap.png',
+      'https://dd.dexscreener.com/ds-data/tokens/sonic/0xe51ee9868c1f0d6cd968a8b8c8376dc2991bfe44.png?key=50f8b4'
+    ];
+
+    const loadedImages = [];
+    const loadedIndices = new Set();
+    const drops = [];
+    let animationId;
+
+    // Create fallback colored squares
+    function createFallback(color, text) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 32;
+      const context = c.getContext('2d');
+      context.fillStyle = color;
+      context.fillRect(0, 0, 32, 32);
+      context.fillStyle = 'white';
+      context.font = '12px Arial';
+      context.textAlign = 'center';
+      context.fillText(text, 16, 20);
+      const img = new Image();
+      img.src = c.toDataURL();
+      return img;
+    }
+
+    // Add fallback images
+    [
+      ['#f97316', 'S'],  // Sonic orange
+      ['#3B82F6', 'D'],  // DeFi blue
+      ['#10B981', 'N'],  // NFT green
+      ['#8B5CF6', 'T']   // Token purple
+    ].forEach(([color, text]) => {
+      const img = createFallback(color, text);
+      img.onload = () => {
+        loadedIndices.add(loadedImages.length);
+        loadedImages.push(img);
+      };
+    });
+
+    // Load external logos
+    logoPngs.forEach((src) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        loadedIndices.add(loadedImages.length);
+        loadedImages.push(img);
+      };
+      img.onerror = () => console.warn('Failed to load:', src);
+      img.src = src;
+    });
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
@@ -419,41 +480,81 @@ export function getSonicDashboardHTML(): string {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    const logos = [];
-    const logoCount = 30;
-
-    for (let i = 0; i < logoCount; i++) {
-      logos.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height - canvas.height,
-        speed: Math.random() * 2 + 1,
-        size: Math.random() * 30 + 15,
-        opacity: Math.random() * 0.3 + 0.1
-      });
+    function getRandomImage() {
+      const loaded = Array.from(loadedIndices).map(i => loadedImages[i]).filter(img => img && img.complete);
+      return loaded.length > 0 ? loaded[Math.floor(Math.random() * loaded.length)] : null;
     }
 
-    function drawLogos() {
+    function createDrop() {
+      const img = getRandomImage();
+      if (!img) return null;
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height * 2,
+        speed: Math.random() * 2 + 1,
+        size: Math.random() * 40 + 20,
+        img,
+        z: Math.random() < 0.85 ? 'behind' : 'above'
+      };
+    }
+
+    // Initialize drops gradually
+    setTimeout(() => {
+      for (let i = 0; i < 3; i++) {
+        const drop = createDrop();
+        if (drop) drops.push(drop);
+      }
+      const maxDrops = Math.floor((canvas.width * canvas.height) / 2000);
+      const addInterval = setInterval(() => {
+        if (drops.length >= maxDrops) {
+          clearInterval(addInterval);
+          return;
+        }
+        const drop = createDrop();
+        if (drop) drops.push(drop);
+      }, 800);
+    }, 500);
+
+    function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      logos.forEach(logo => {
-        ctx.globalAlpha = logo.opacity;
-        ctx.fillStyle = '#f97316';
-        ctx.font = \`\${logo.size}px Arial\`;
-        ctx.fillText('S', logo.x, logo.y);
+      // Draw behind drops
+      drops.filter(d => d.z === 'behind').forEach(drop => {
+        if (drop.img && drop.img.complete) {
+          ctx.globalAlpha = 0.3;
+          ctx.drawImage(drop.img, drop.x, drop.y, drop.size, drop.size);
+        }
+      });
 
-        logo.y += logo.speed;
-
-        if (logo.y > canvas.height + logo.size) {
-          logo.y = -logo.size;
-          logo.x = Math.random() * canvas.width;
+      // Draw above drops with shadow
+      drops.filter(d => d.z === 'above').forEach(drop => {
+        if (drop.img && drop.img.complete) {
+          ctx.globalAlpha = 0.7;
+          ctx.shadowColor = 'rgba(0,0,0,0.3)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 2;
+          ctx.shadowOffsetY = 2;
+          ctx.drawImage(drop.img, drop.x, drop.y, drop.size, drop.size);
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
         }
       });
 
       ctx.globalAlpha = 1;
-      requestAnimationFrame(drawLogos);
+
+      // Update positions
+      drops.forEach((drop, i) => {
+        drop.y += drop.speed;
+        if (drop.y > canvas.height + drop.size) {
+          const newDrop = createDrop();
+          if (newDrop) drops[i] = newDrop;
+        }
+      });
+
+      animationId = requestAnimationFrame(animate);
     }
 
-    drawLogos();
+    animate();
 
     // API functions
     async function callMCPTool(toolName, args) {
