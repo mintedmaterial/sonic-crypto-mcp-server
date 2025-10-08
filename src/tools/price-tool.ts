@@ -57,8 +57,8 @@ export async function executeGetLatestIndexTick(
   try {
     const cacheKey = `price:multi:${instruments.join(',')}`;
 
-    // Try cache first (10 second TTL)
-    const cached = await getCachedData(cacheKey, env, 10);
+    // Try cache first (60 second TTL - Cloudflare KV minimum)
+    const cached = await getCachedData(cacheKey, env, 60);
     if (cached) {
       return {
         success: true,
@@ -131,8 +131,8 @@ export async function executeGetLatestIndexTick(
       sources_used: [...new Set(priceData.map(p => p.SOURCE))],
     };
 
-    // Cache the result
-    await setCachedData(cacheKey, result, env, 10);
+    // Cache the result (60 second TTL - Cloudflare KV minimum)
+    await setCachedData(cacheKey, result, env, 60);
 
     // Log analytics
     if (env.ANALYTICS) {
