@@ -50,7 +50,7 @@ export const API_ENDPOINTS = {
   HISTORICAL_DAYS: '/index/cc/v1/historical/days',
   HISTORICAL_HOURS: '/index/cc/v1/historical/hours',
   HISTORICAL_MINUTES: '/index/cc/v1/historical/minutes',
-  ORDERLY_BASE: 'https://api-evm.orderly.org',
+  ORDERLY_BASE: 'https://api.orderly.org',
   DEXSCREENER_BASE: 'https://api.dexscreener.com',
   BRAVE_SEARCH: 'https://api.search.brave.com/res/v1/web/search',
 } as const;

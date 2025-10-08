@@ -69,8 +69,9 @@ export class OrderlyService {
    */
   async getTicker(symbol: string): Promise<OrderlyTicker | null> {
     try {
+      // Orderly API uses /v1/public/futures for all market data
       const response = await fetch(
-        `${this.baseUrl}/v1/public/ticker/${symbol}`,
+        `${this.baseUrl}/v1/public/futures`,
         {
           headers: {
             'Accept': 'application/json',
@@ -83,17 +84,29 @@ export class OrderlyService {
       }
 
       const data = await response.json() as any;
+      const rows = data.data?.rows || [];
+
+      // Find the specific symbol
+      const ticker = rows.find((r: any) => r.symbol === symbol);
+
+      if (!ticker) {
+        throw new Error(`Symbol ${symbol} not found in Orderly markets`);
+      }
+
+      const changePercent = ticker['24h_close'] && ticker['24h_open']
+        ? ((ticker['24h_close'] - ticker['24h_open']) / ticker['24h_open']) * 100
+        : 0;
 
       return {
         symbol,
-        last_price: parseFloat(data.close),
-        bid_price: parseFloat(data.bid || data.close),
-        ask_price: parseFloat(data.ask || data.close),
-        spread: parseFloat(data.ask || 0) - parseFloat(data.bid || 0),
-        volume_24h: parseFloat(data.volume),
-        change_24h: parseFloat(data.change || 0),
-        high_24h: parseFloat(data.high),
-        low_24h: parseFloat(data.low),
+        last_price: parseFloat(ticker.mark_price || ticker['24h_close'] || 0),
+        bid_price: parseFloat(ticker.mark_price || ticker['24h_close'] || 0),
+        ask_price: parseFloat(ticker.mark_price || ticker['24h_close'] || 0),
+        spread: 0, // Not provided in futures endpoint
+        volume_24h: parseFloat(ticker['24h_amount'] || 0),
+        change_24h: changePercent,
+        high_24h: parseFloat(ticker['24h_high'] || 0),
+        low_24h: parseFloat(ticker['24h_low'] || 0),
       };
     } catch (error) {
       console.error(`Orderly getTicker error for ${symbol}:`, error);
