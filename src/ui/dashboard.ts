@@ -468,9 +468,12 @@ export function getSonicDashboardHTML(): string {
       input.value = '';
       messages.scrollTop = messages.scrollHeight;
 
-      messages.innerHTML += \`<div class="message assistant" id="temp-loading">
-        <div class="spinner" style="width: 20px; height: 20px;"></div>
-      </div>\`;
+      // Create assistant message container
+      const assistantMsg = document.createElement('div');
+      assistantMsg.className = 'message assistant';
+      assistantMsg.id = 'streaming-response';
+      assistantMsg.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; display: inline-block;"></div>';
+      messages.appendChild(assistantMsg);
       messages.scrollTop = messages.scrollHeight;
 
       try {
@@ -480,12 +483,49 @@ export function getSonicDashboardHTML(): string {
           body: JSON.stringify({ message: userMessage })
         });
 
-        const result = await response.json();
-        document.getElementById('temp-loading').remove();
-        messages.innerHTML += \`<div class="message assistant">\${result.response || 'Sorry, I couldn\\'t process that.'}</div>\`;
+        if (!response.ok) {
+          throw new Error('Failed to get response');
+        }
+
+        // Handle streaming response
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+
+        assistantMsg.innerHTML = ''; // Remove spinner
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.response) {
+                  fullText += parsed.response;
+                  assistantMsg.textContent = fullText;
+                  messages.scrollTop = messages.scrollHeight;
+                }
+              } catch (e) {
+                // Ignore parse errors for partial chunks
+              }
+            }
+          }
+        }
+
+        if (!fullText) {
+          assistantMsg.textContent = 'Sorry, I couldn\\'t process that.';
+        }
+
       } catch (error) {
-        document.getElementById('temp-loading').remove();
-        messages.innerHTML += \`<div class="message assistant error">Error: \${error.message}</div>\`;
+        assistantMsg.innerHTML = \`<span class="error">Error: \${error.message}</span>\`;
       }
 
       messages.scrollTop = messages.scrollHeight;

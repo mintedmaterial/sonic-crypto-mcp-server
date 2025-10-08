@@ -88,7 +88,7 @@ export default {
         });
       }
 
-      // ===== AI Chat Endpoint =====
+      // ===== AI Chat Endpoint with Streaming =====
       if (path === '/api/chat' && request.method === 'POST') {
         const { message } = await request.json() as any;
 
@@ -104,39 +104,60 @@ export default {
         let context = '';
 
         // Auto-fetch relevant data
-        if (lowerMessage.includes('price') || lowerMessage.includes('cost')) {
+        if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('sonic')) {
           const priceResult = await executeTool('get_latest_index_tick', {
             market: 'cadli',
             instruments: ['BTC-USD', 'ETH-USD', 'S-USD', 'SONIC-USD']
           }, env);
-          context += `\\nCurrent Prices: ${JSON.stringify(priceResult.data)}`;
+          context += `\nCurrent Prices: ${JSON.stringify(priceResult.data)}`;
         }
 
-        if (lowerMessage.includes('sentiment') || lowerMessage.includes('market')) {
+        if (lowerMessage.includes('sentiment') || lowerMessage.includes('market') || lowerMessage.includes('opportunities')) {
           const sentimentResult = await executeTool('analyze_sonic_market_sentiment', {
             sentiment_sources: ['price_action', 'volume_analysis'],
             timeframe: '1d'
           }, env);
-          context += `\\nMarket Sentiment: ${JSON.stringify(sentimentResult.data)}`;
+          context += `\nMarket Sentiment: ${JSON.stringify(sentimentResult.data)}`;
         }
 
-        const response = await ai.chat(message, context);
+        // Use Hermes 2 Pro Mistral 7B with streaming
+        const systemPrompt = `You are a helpful cryptocurrency and DeFi assistant specializing in the Sonic blockchain ecosystem.
+You have access to real-time market data and can provide insights on:
+- Cryptocurrency prices and trends
+- Market sentiment analysis
+- DeFi opportunities on Sonic
+- Sonic ecosystem projects
+- Trading strategies
+
+Provide concise, accurate, and helpful responses. When discussing prices or data, use the context provided.
+${context ? `\nContext: ${context}` : ''}`;
+
+        const messages = [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ];
+
+        const stream = await env.AI.run('@hf/nousresearch/hermes-2-pro-mistral-7b', {
+          messages,
+          stream: true
+        });
 
         // Log to analytics
         if (env.ANALYTICS) {
           env.ANALYTICS.writeDataPoint({
             blobs: ['ai_chat', message.substring(0, 50)],
-            doubles: [response.length],
+            doubles: [1],
             indexes: ['chat']
           });
         }
 
-        return new Response(JSON.stringify({
-          success: true,
-          response,
-          context_used: context ? true : false
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        return new Response(stream, {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
+          }
         });
       }
 
@@ -339,6 +360,38 @@ export default {
       console.log('Scheduled task completed successfully');
     } catch (error) {
       console.error('Scheduled task error:', error);
+    }
+  },
+
+  // Queue handler for crypto data processing
+  async queue(batch: MessageBatch<any>, env: Env, ctx: ExecutionContext): Promise<void> {
+    console.log(`Processing queue batch with ${batch.messages.length} messages`);
+
+    for (const message of batch.messages) {
+      try {
+        const { type, data } = message.body;
+
+        switch (type) {
+          case 'refresh_price':
+            // Refresh price data for specific instruments
+            console.log('Refreshing price data:', data);
+            break;
+
+          case 'seed_historical':
+            // Seed historical data
+            console.log('Seeding historical data:', data);
+            await seedHistoricalData(data.config || {}, env);
+            break;
+
+          default:
+            console.warn('Unknown queue message type:', type);
+        }
+
+        message.ack();
+      } catch (error) {
+        console.error('Queue message processing error:', error);
+        message.retry();
+      }
     }
   }
 };
