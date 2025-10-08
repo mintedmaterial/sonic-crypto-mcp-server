@@ -58,11 +58,6 @@ binding = "ANALYTICS"
 binding = "CRYPTO_QUEUE"
 queue = "sonic-crypto-processing"
 
-[[queues.consumers]]
-queue = "sonic-crypto-processing"
-max_batch_size = 10
-max_batch_timeout = 30
-
 # D1 Database for metadata and configuration
 [[d1_databases]]
 binding = "CONFIG_DB"
