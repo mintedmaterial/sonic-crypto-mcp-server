@@ -103,11 +103,12 @@ export class DexScreenerService {
   async getSonicPrices(tokenSymbols: string[]): Promise<Record<string, DexScreenerPriceData>> {
     const results: Record<string, DexScreenerPriceData> = {};
 
-    // Sonic token addresses (you'll need to provide actual addresses)
+    // Sonic chain token addresses
     const sonicTokenAddresses: Record<string, string> = {
-      'S': '0x29219dd400f2Bf60E5a23d13Be72B486D4038894', // S token
-      'SONIC': '0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38', // SONIC token
-      // Add more token addresses as needed
+      'SONIC': '0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38', // Wrapped Sonic (wS)
+      'S': '0xd3DCe716f3eF535C5Ff8d041c1A41C3bd89b97aE', // Sonic USD (scUSD) stablecoin
+      'scUSD': '0xd3DCe716f3eF535C5Ff8d041c1A41C3bd89b97aE', // Same as S-USD
+      'USDC': '0x29219dd400f2Bf60E5a23d13Be72B486D4038894', // USDC on Sonic
     };
 
     const addresses: string[] = [];
