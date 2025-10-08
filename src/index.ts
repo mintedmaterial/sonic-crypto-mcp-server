@@ -163,16 +163,34 @@ ${context ? `\nContext: ${context}` : ''}`;
 
       // ===== Direct API Endpoints =====
 
-      // Get latest prices
+      // Get latest prices with enhanced error handling
       if (path === '/api/price') {
-        const args = request.method === 'POST'
-          ? await request.json()
-          : { market: 'cadli', instruments: ['BTC-USD', 'ETH-USD', 'S-USD', 'SONIC-USD'] };
+        try {
+          const args = request.method === 'POST'
+            ? await request.json()
+            : { market: 'orderly', instruments: ['BTC-USD', 'ETH-USD', 'S-USD', 'SONIC-USD'] };
 
-        const result = await executeTool('get_latest_index_tick', args, env);
-        return new Response(JSON.stringify(result, null, 2), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+          const result = await executeTool('get_latest_index_tick', args, env);
+          
+          // Log the data sources used
+          if (result.success && result.data) {
+            console.log(`✅ Price fetch: ${result.data.sources_used?.join(', ') || 'unknown sources'}`);
+          }
+          
+          return new Response(JSON.stringify(result, null, 2), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          console.error('Price API error:', error);
+          return new Response(JSON.stringify({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
       }
 
       // Get sentiment analysis
@@ -189,6 +207,79 @@ ${context ? `\nContext: ${context}` : ''}`;
         return new Response(JSON.stringify(result, null, 2), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
+      }
+
+      // ===== Service-Specific Endpoints =====
+
+      // Orderly DEX Markets
+      if (path === '/api/orderly/markets') {
+        try {
+          const orderly = new (await import('./services/orderly')).OrderlyService(env);
+          const markets = await orderly.getMarkets();
+          return new Response(JSON.stringify({ success: true, data: markets }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({ success: false, error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Orderly DEX Ticker
+      if (path.startsWith('/api/orderly/ticker/')) {
+        try {
+          const symbol = path.split('/').pop() || '';
+          const orderly = new (await import('./services/orderly')).OrderlyService(env);
+          const ticker = await orderly.getTicker(symbol);
+          return new Response(JSON.stringify({ success: true, data: ticker }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({ success: false, error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // DexScreener Search
+      if (path === '/api/dexscreener/search') {
+        try {
+          const { query } = request.method === 'POST' 
+            ? await request.json() 
+            : { query: url.searchParams.get('q') || 'sonic' };
+          const dex = new (await import('./services/dexscreener')).DexScreenerService(env);
+          const pairs = await dex.searchPairs(query);
+          return new Response(JSON.stringify({ success: true, data: pairs }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({ success: false, error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // DexScreener Sonic Prices
+      if (path === '/api/dexscreener/sonic') {
+        try {
+          const { symbols } = request.method === 'POST'
+            ? await request.json()
+            : { symbols: ['SONIC', 'S', 'USDC'] };
+          const dex = new (await import('./services/dexscreener')).DexScreenerService(env);
+          const prices = await dex.getSonicPrices(symbols);
+          return new Response(JSON.stringify({ success: true, data: prices }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({ success: false, error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
       }
 
       // Search crypto news
@@ -286,15 +377,25 @@ ${context ? `\nContext: ${context}` : ''}`;
             "/": "Sonic-themed Dashboard with AI Chat (SPA)",
             "/mcp/tools/list": "List all MCP tools",
             "/mcp/tools/call": "Execute MCP tool (POST)",
-            "/api/price": "Get latest cryptocurrency prices",
+            "/api/price": "Get latest cryptocurrency prices (multi-source: Orderly → DexScreener → CoinDesk)",
             "/api/sentiment": "Market sentiment analysis",
-            "/api/news": "Search crypto news",
+            "/api/news": "Search crypto news (requires BRAVE_API_KEY)",
             "/api/chat": "AI chat with context-aware responses (POST)",
+            "/api/orderly/markets": "Get Orderly DEX markets",
+            "/api/orderly/ticker/{symbol}": "Get Orderly DEX ticker for symbol",
+            "/api/dexscreener/search": "Search DexScreener pairs",
+            "/api/dexscreener/sonic": "Get Sonic chain token prices from DexScreener",
             "/api/seed-data": "Seed historical data (POST)",
             "/api/refresh-data": "Refresh recent data (POST)",
             "/api/init-db": "Initialize database schema (POST)",
             "/health": "Health check with service status",
             "/api/docs": "API documentation (this page)"
+          },
+          data_sources: {
+            "Orderly DEX": "https://api.orderly.org - Real-time perpetuals and spot prices",
+            "DexScreener": "https://api.dexscreener.com - Multi-chain DEX aggregator (Sonic focused)",
+            "CoinDesk": "https://production.api.coindesk.com - Fallback for index data",
+            "Brave Search": "https://api.search.brave.com - Crypto news (requires API key)"
           },
           tools: ALL_TOOLS.map(t => ({
             name: t.name,

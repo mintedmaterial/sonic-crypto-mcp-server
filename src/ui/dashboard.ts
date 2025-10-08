@@ -573,24 +573,41 @@ export function getSonicDashboardHTML(): string {
 
       try {
         const result = await callMCPTool('get_latest_index_tick', {
-          market: 'cadli',
+          market: 'orderly',
           instruments: ['BTC-USD', 'ETH-USD', 'S-USD', 'SONIC-USD']
         });
 
         if (result.success && result.data) {
           let html = '';
           const data = result.data.data || [];
+          const sources = result.data.sources_used || [];
+          const errors = result.data.errors || [];
+
+          // Display data source badges
+          if (sources.length > 0) {
+            html += '<div style="margin-bottom: 12px; font-size: 0.8125rem; color: var(--text-secondary);">';
+            html += '<strong>Data Sources:</strong> ';
+            sources.forEach(source => {
+              const color = source === 'orderly' ? '#3B82F6' : 
+                           source === 'dexscreener' ? '#10B981' : '#f97316';
+              html += \`<span style="background: \${color}; color: white; padding: 2px 8px; border-radius: 4px; margin-right: 5px;">\${source.toUpperCase()}</span>\`;
+            });
+            html += '</div>';
+          }
 
           data.forEach(item => {
-            const price = item.VALUE?.PRICE || 'N/A';
+            const price = item.VALUE?.PRICE || 0;
             const change = item.CURRENT_DAY?.CHANGE_PERCENTAGE || 0;
             const changeClass = change >= 0 ? 'positive' : 'negative';
             const changeSymbol = change >= 0 ? '↑' : '↓';
+            const source = item.SOURCE || 'unknown';
+            const sourceEmoji = source === 'orderly' ? '🔷' : 
+                               source === 'dexscreener' ? '💎' : '🏦';
 
             html += \`
               <div class="price-item">
-                <div class="price-label">\${item.INSTRUMENT || 'Unknown'}</div>
-                <div class="price-value">$\${typeof price === 'number' ? price.toFixed(2) : price}</div>
+                <div class="price-label">\${sourceEmoji} \${item.INSTRUMENT || 'Unknown'}</div>
+                <div class="price-value">$\${typeof price === 'number' ? price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 8}) : 'N/A'}</div>
                 <div class="price-change \${changeClass}">
                   \${changeSymbol} \${Math.abs(change).toFixed(2)}%
                 </div>
@@ -598,12 +615,21 @@ export function getSonicDashboardHTML(): string {
             \`;
           });
 
+          // Show errors if any
+          if (errors.length > 0) {
+            html += '<div style="margin-top: 12px; font-size: 0.8125rem; color: var(--text-secondary);">';
+            html += '<details><summary style="cursor: pointer;">⚠️ Some errors occurred</summary>';
+            html += '<ul style="margin: 8px 0 0 20px;">';
+            errors.forEach(err => html += \`<li>\${err}</li>\`);
+            html += '</ul></details></div>';
+          }
+
           el.innerHTML = html || '<p style="color: var(--text-secondary);">No price data available</p>';
         } else {
-          throw new Error('Invalid response');
+          throw new Error(result.error || 'Invalid response');
         }
       } catch (error) {
-        el.innerHTML = \`<div class="error">Error: \${error.message}</div>\`;
+        el.innerHTML = \`<div class="error">❌ Error: \${error.message}<br><br>Try refreshing or check <a href="/api/docs" style="color: var(--accent-orange);">API docs</a></div>\`;
       }
     }
 
@@ -656,24 +682,38 @@ export function getSonicDashboardHTML(): string {
           const news = result.data.news_items || [];
           let html = '';
 
-          news.forEach(item => {
-            const sentimentColor = item.sentiment === 'positive' ? 'var(--success)' :
-                                  item.sentiment === 'negative' ? 'var(--error)' : 'var(--accent-orange)';
-            html += \`
-              <div style="margin: 10px 0; padding: 12px; background: rgba(0, 0, 0, 0.2); border-left: 3px solid \${sentimentColor}; border-radius: 8px;">
-                <div style="font-weight: 600; margin-bottom: 5px;">\${item.title}</div>
-                <div style="font-size: 0.875rem; color: var(--text-secondary);">\${item.summary}</div>
-                <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 5px;">\${item.source} • \${item.date}</div>
-              </div>
-            \`;
-          });
+          if (news.length === 0) {
+            html = '<div style="padding: 12px; background: rgba(249, 115, 22, 0.1); border-radius: 8px; color: var(--text-secondary);">';
+            html += '⚠️ <strong>News search requires BRAVE_API_KEY</strong><br><br>';
+            html += 'To enable news: <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">wrangler secret put BRAVE_API_KEY</code><br>';
+            html += 'Get your API key at: <a href="https://brave.com/search/api/" target="_blank" style="color: var(--accent-orange);">brave.com/search/api</a>';
+            html += '</div>';
+          } else {
+            news.forEach(item => {
+              const sentimentColor = item.sentiment === 'positive' ? 'var(--success)' :
+                                    item.sentiment === 'negative' ? 'var(--error)' : 'var(--accent-orange)';
+              html += \`
+                <div style="margin: 10px 0; padding: 12px; background: rgba(0, 0, 0, 0.2); border-left: 3px solid \${sentimentColor}; border-radius: 8px;">
+                  <div style="font-weight: 600; margin-bottom: 5px;">\${item.title}</div>
+                  <div style="font-size: 0.875rem; color: var(--text-secondary);">\${item.description || item.summary || ''}</div>
+                  <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 5px;">
+                    <a href="\${item.url}" target="_blank" style="color: var(--accent-orange);">\${item.source}</a> • \${item.date}
+                  </div>
+                </div>
+              \`;
+            });
+          }
 
           el.innerHTML = html || '<p style="color: var(--text-secondary);">No news available</p>';
         } else {
-          throw new Error('Failed to fetch news');
+          // Check if it's an API key issue
+          if (result.error && result.error.includes('401')) {
+            throw new Error('BRAVE_API_KEY not configured. Set with: wrangler secret put BRAVE_API_KEY');
+          }
+          throw new Error(result.error || 'Failed to fetch news');
         }
       } catch (error) {
-        el.innerHTML = \`<div class="error">Error: \${error.message}</div>\`;
+        el.innerHTML = \`<div class="error">❌ \${error.message}</div>\`;
       }
     }
 

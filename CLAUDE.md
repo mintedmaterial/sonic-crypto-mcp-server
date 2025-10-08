@@ -25,9 +25,12 @@ This is a **Sonic Crypto MCP Server** - an advanced Model Context Protocol serve
 
 ### Data Sources & APIs
 
-- **CoinDesk API**: Real-time and historical cryptocurrency index data
-- **Supported Markets**: CADLI (main), CCIX, CCIXBE, CD_MC, SDA indices
-- **Sonic Instruments**: S-USD, ETH-USD, BTC-USD, USDC-USD, USDT-USD
+- **Orderly Network DEX**: Real-time perpetuals and spot market data from dex.srvcflo.com (PRIMARY)
+- **DexScreener**: Free real-time DEX price data across Sonic and other chains (SECONDARY)
+- **CoinDesk API**: Real-time and historical cryptocurrency index data (FALLBACK)
+- **Brave Search API**: Real-time web search for cryptocurrency news (REQUIRES API KEY)
+- **Supported Markets**: CADLI, CCIX, CCIXBE, CD_MC, SDA indices (CoinDesk), Orderly futures, Sonic DEX
+- **Sonic Instruments**: S-USD, SONIC-USD, ETH-USD, BTC-USD, USDC-USD, USDT-USD
 - **AI Analysis**: Sentiment analysis, yield farming opportunities, arbitrage detection
 
 ## Development Commands
@@ -74,9 +77,15 @@ npm run tail
 Set these secrets before deployment:
 ```bash
 wrangler secret put COINDESK_API_KEY
+wrangler secret put BRAVE_API_KEY    # Required for news search
 wrangler secret put AI_GATEWAY_TOKEN  # Optional for AI Gateway
 wrangler secret put ANTHROPIC_API_KEY  # Optional for alternative AI
 ```
+
+**Get API Keys:**
+- CoinDesk: https://www.coindesk.com/coindesk-api
+- Brave Search: https://brave.com/search/api/
+- No keys needed for Orderly or DexScreener (free APIs)
 
 ## API Endpoints
 
@@ -86,7 +95,7 @@ wrangler secret put ANTHROPIC_API_KEY  # Optional for alternative AI
 - `POST /mcp/tools/call` - Execute MCP tool
 
 ### Direct API Access
-- `GET|POST /api/price` - Latest cryptocurrency prices
+- `GET|POST /api/price` - Latest cryptocurrency prices (multi-source: Orderly → DexScreener → CoinDesk)
 - `GET|POST /api/historical-daily` - Daily OHLCV data
 - `GET|POST /api/historical-hourly` - Hourly OHLCV data
 - `GET|POST /api/historical-minutes` - Minute-level OHLCV data
@@ -96,6 +105,11 @@ wrangler secret put ANTHROPIC_API_KEY  # Optional for alternative AI
 - `GET|POST /api/markets` - Available markets info
 - `GET|POST /api/opportunities` - AI-powered opportunity analysis
 - `GET|POST /api/sentiment` - AI-powered sentiment analysis
+- `GET /api/orderly/markets` - Get all Orderly DEX markets
+- `GET /api/orderly/ticker/{symbol}` - Get Orderly DEX ticker for specific symbol
+- `GET|POST /api/dexscreener/search` - Search DexScreener for token pairs
+- `GET|POST /api/dexscreener/sonic` - Get Sonic chain token prices
+- `GET|POST /api/news` - Search crypto news (requires BRAVE_API_KEY)
 
 ### Utility Endpoints
 - `GET /health` - Health check with service status
@@ -107,16 +121,12 @@ wrangler secret put ANTHROPIC_API_KEY  # Optional for alternative AI
 
 ## MCP Tools Available
 
-1. **get_latest_index_tick**: Real-time cryptocurrency index data with OHLC metrics
+1. **get_latest_index_tick**: Real-time cryptocurrency prices with multi-source fallback (Orderly → DexScreener → CoinDesk)
 2. **get_historical_ohlcv_daily**: Historical daily OHLCV data (up to 5000 points)
 3. **get_historical_ohlcv_hourly**: Historical hourly data for intraday analysis
 4. **get_historical_ohlcv_minutes**: Minute-by-minute data for high-frequency analysis
-5. **get_da_fixings**: CoinDesk Digital Asset Fixings for end-of-day pricing
-6. **get_index_updates_by_timestamp**: Tick-level index updates from specific timestamps
-7. **get_instrument_metadata**: Comprehensive metadata about financial instruments
-8. **get_available_markets**: Information about available cryptocurrency indices
-9. **search_sonic_opportunities**: AI-powered analysis of Sonic ecosystem opportunities
-10. **analyze_sonic_market_sentiment**: AI-powered market sentiment analysis
+5. **analyze_sonic_market_sentiment**: AI-powered market sentiment analysis
+6. **search_crypto_news**: Web search for cryptocurrency news using Brave Search API
 
 ## Cloudflare Bindings Configuration
 

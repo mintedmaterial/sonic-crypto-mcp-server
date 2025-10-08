@@ -190,44 +190,65 @@ export async function seedHistoricalData(
 
 /**
  * Refresh recent data (last 7 days) - runs on schedule
+ * NOW WITH MULTI-SOURCE FALLBACK (Orderly → DexScreener → CoinDesk)
  */
 export async function refreshRecentData(env: Env): Promise<void> {
   const instruments = DEFAULT_SEEDING_CONFIG.instruments;
   const market = 'cadli';
 
+  // Import the multi-source price fetching
+  const { executeGetLatestIndexTick } = await import('../tools/price-tool');
+
   for (const instrument of instruments) {
     try {
-      // Fetch last 7 days
-      const data = await fetchCoinDeskData('/index/cc/v1/historical/days', {
-        market,
-        instruments: [instrument],
-        limit: 7
+      // Try multi-source price fetch first (Orderly → DexScreener → CoinDesk)
+      const priceResult = await executeGetLatestIndexTick({ 
+        market, 
+        instruments: [instrument] 
       }, env);
 
-      // Update KV cache (7 day TTL)
-      const kvKey = `recent:${market}:${instrument}`;
-      await env.SONIC_CACHE.put(kvKey, JSON.stringify(data), {
-        expirationTtl: 7 * 24 * 60 * 60
-      });
+      if (priceResult.success && priceResult.data?.data?.[0]) {
+        const latest = priceResult.data.data[0];
+        
+        // Update KV cache with latest price (60 second TTL)
+        const kvKey = `price:latest:${instrument}`;
+        await env.SONIC_CACHE.put(kvKey, JSON.stringify(latest), {
+          expirationTtl: 60
+        });
 
-      // Update D1 with latest prices
-      if (data.data && data.data.length > 0) {
-        const latest = data.data[0];
+        // Update D1 with latest prices
         await env.CONFIG_DB.prepare(`
           INSERT INTO price_snapshots (instrument, market, price, change_pct, volume, timestamp)
           VALUES (?, ?, ?, ?, ?, ?)
         `).bind(
           instrument,
           market,
-          latest.PRICE || 0,
-          latest.CHANGE_PERCENTAGE || 0,
-          latest.VOLUME || 0,
+          latest.VALUE?.PRICE || 0,
+          latest.CURRENT_DAY?.CHANGE_PERCENTAGE || 0,
+          latest.CURRENT_DAY?.VOLUME || 0,
           new Date().toISOString()
         ).run();
+
+        console.log(`✅ Refreshed ${instrument} via ${latest.SOURCE}: $${latest.VALUE?.PRICE}`);
+      } else {
+        console.warn(`⚠️ No data available for ${instrument}`);
       }
 
-    } catch (error) {
-      console.error(`Failed to refresh ${instrument}:`, error);
+    } catch (error: any) {
+      console.error(`Failed to refresh ${instrument}: ${error}`);
+      
+      // Log to D1 for debugging
+      await env.CONFIG_DB.prepare(`
+        INSERT INTO data_fetch_log (data_type, market, instruments, status, error_message, fetch_timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).bind(
+        'refresh',
+        market,
+        instrument,
+        'error',
+        error.message,
+        new Date().toISOString()
+      ).run();
     }
   }
 }

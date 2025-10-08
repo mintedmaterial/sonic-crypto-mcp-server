@@ -8,7 +8,7 @@ import { DexScreenerService } from '../services/dexscreener';
 
 export const priceToolDefinition: MCPTool = {
   name: "get_latest_index_tick",
-  description: "Get latest cryptocurrency prices with multi-source fallback (Orderly DEX → DexScreener → CoinDesk). Supports Sonic ecosystem tokens and major cryptocurrencies.",
+  description: "Get latest cryptocurrency prices with multi-source fallback (Orderly DEX → DexScreener → CoinDesk). Supports Sonic ecosystem tokens and major cryptocurrencies. S-USD uses PERP_S_USDC from Orderly/what.exchange for accurate perpetual pricing.",
   inputSchema: {
     type: "object",
     properties: {
@@ -16,13 +16,13 @@ export const priceToolDefinition: MCPTool = {
         type: "string",
         enum: ["cadli", "ccix", "ccixbe", "cd_mc", "sda", "orderly", "dexscreener"],
         default: "orderly",
-        description: "Data source: 'orderly' for DEX data, 'dexscreener' for DEX aggregator, or CoinDesk markets"
+        description: "Data source: 'orderly' for DEX data (includes PERP_S_USDC), 'dexscreener' for DEX aggregator, or CoinDesk markets"
       },
       instruments: {
         type: "array",
         items: { type: "string" },
         default: ["BTC-USD", "ETH-USD", "S-USD", "SONIC-USD"],
-        description: "Array of instrument symbols (e.g., BTC-USD, ETH-USD, S-USD)"
+        description: "Array of instrument symbols (e.g., BTC-USD, ETH-USD, S-USD for PERP_S_USDC)"
       }
     },
     required: ["instruments"]
@@ -83,6 +83,7 @@ export async function executeGetLatestIndexTick(
             console.log(`✅ Orderly: ${instrument} = $${price.VALUE.PRICE}`);
           }
         } catch (error: any) {
+          console.error(`❌ Orderly ${instrument}: ${error.message}`);
           errors.push(`Orderly ${instrument}: ${error.message}`);
         }
       }
@@ -95,6 +96,7 @@ export async function executeGetLatestIndexTick(
             console.log(`✅ DexScreener: ${instrument} = $${price.VALUE.PRICE}`);
           }
         } catch (error: any) {
+          console.error(`❌ DexScreener ${instrument}: ${error.message}`);
           errors.push(`DexScreener ${instrument}: ${error.message}`);
         }
       }
@@ -107,6 +109,7 @@ export async function executeGetLatestIndexTick(
             console.log(`✅ CoinDesk: ${instrument} = $${price.VALUE.PRICE}`);
           }
         } catch (error: any) {
+          console.error(`❌ CoinDesk ${instrument}: ${error.message}`);
           errors.push(`CoinDesk ${instrument}: ${error.message}`);
         }
       }
@@ -161,6 +164,8 @@ export async function executeGetLatestIndexTick(
 
 /**
  * Fetch price from Orderly Network
+ * Uses PERP_S_USDC for S-USD (correct S token perpetual price)
+ * Source: https://trade.what.exchange/perp/PERP_S_USDC
  */
 async function fetchFromOrderly(instrument: string, env: Env): Promise<PriceData | null> {
   const orderly = new OrderlyService(env);

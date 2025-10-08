@@ -198,14 +198,16 @@ export class OrderlyService {
 
   /**
    * Convert common symbols to Orderly format
+   * Orderly Network provides accurate perpetual prices via what.exchange
+   * Example: https://trade.what.exchange/perp/PERP_S_USDC
    */
   static normalizeSymbol(symbol: string): string {
     // Map common symbols to Orderly format
     const symbolMap: Record<string, string> = {
       'BTC-USD': 'PERP_BTC_USDC',
       'ETH-USD': 'PERP_ETH_USDC',
-      'S-USD': 'PERP_S_USDC',
-      'SONIC-USD': 'PERP_SONIC_USDC',
+      'S-USD': 'PERP_S_USDC',        // S token perpetual (primary source for S price)
+      'SONIC-USD': 'PERP_SONIC_USDC', // SONIC token perpetual
       'USDC-USD': 'SPOT_USDC_USDT',
       'USDT-USD': 'SPOT_USDT_USDC',
     };
