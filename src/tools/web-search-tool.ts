@@ -1,27 +1,29 @@
-// Web search tool for crypto news and sentiment
+// Web search tool using Brave Search API for real crypto news
+// Only returns 2025+ articles
 
 import { Env, MCPTool, ToolExecutionResult } from './types';
+import { BraveSearchService } from '../services/brave-search';
 
 export const webSearchToolDefinition: MCPTool = {
   name: "search_crypto_news",
-  description: "Search the web for latest cryptocurrency news and updates about specific tokens or the Sonic ecosystem",
+  description: "Search the web for latest cryptocurrency news and updates using Brave Search. Returns only recent articles from 2025+. Covers Sonic ecosystem, Bitcoin, DeFi, and market analysis.",
   inputSchema: {
     type: "object",
     properties: {
       query: {
         type: "string",
-        description: "Search query (e.g., 'Sonic blockchain news', 'BTC price analysis')"
+        description: "Search query (e.g., 'Sonic blockchain news', 'Bitcoin price analysis', 'DeFi yield farming')"
       },
       tokens: {
         type: "array",
         items: { type: "string" },
-        default: ["Sonic", "S-USD"],
-        description: "Specific tokens to focus on"
+        default: ["Sonic", "Bitcoin", "Ethereum"],
+        description: "Specific tokens to focus on for news"
       },
       max_results: {
         type: "number",
-        default: 5,
-        description: "Maximum number of results to return"
+        default: 15,
+        description: "Maximum number of news articles to return"
       }
     },
     required: ["query"]
@@ -34,77 +36,101 @@ export async function executeWebSearch(
 ): Promise<ToolExecutionResult> {
   const {
     query,
-    tokens = ["Sonic", "S-USD"],
-    max_results = 5
+    tokens = ["Sonic", "Bitcoin", "Ethereum"],
+    max_results = 15
   } = args;
 
   try {
-    // Build enhanced search query
-    const enhancedQuery = `${query} ${tokens.join(' ')} cryptocurrency blockchain`;
+    const braveSearch = new BraveSearchService(env);
 
-    // Use Cloudflare AI to fetch and analyze web content
-    const prompt = `You are a cryptocurrency news aggregator. Based on your knowledge, provide a summary of recent news and developments for: ${enhancedQuery}
+    // Search for crypto news (automatically filters to 2025+)
+    const newsItems = await braveSearch.searchCryptoNews(tokens, max_results);
 
-Provide ${max_results} key news items in JSON format:
-{
-  "news_items": [
-    {
-      "title": "headline",
-      "summary": "brief summary",
-      "sentiment": "positive|negative|neutral",
-      "relevance": 0-100,
-      "source": "source name",
-      "date": "approximate date"
-    }
-  ],
-  "overall_market_sentiment": "bullish|bearish|neutral",
-  "key_trends": ["trend1", "trend2"]
-}`;
+    // If specific query provided, also search that
+    if (query && !query.toLowerCase().includes('news')) {
+      const queryResults = await braveSearch.search(`${query} news`, 5, 'year');
 
-    const aiResponse = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a cryptocurrency news analyst. Provide factual, recent information. Respond only with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
+      queryResults.forEach(result => {
+        // Only include 2025+ articles
+        const dateMatch = result.page_age?.match(/(\d{4})/);
+        const year = dateMatch ? parseInt(dateMatch[1]) : new Date().getFullYear();
+
+        if (year >= 2025) {
+          newsItems.push({
+            title: result.title,
+            url: result.url,
+            description: result.description,
+            source: new URL(result.url).hostname.replace('www.', ''),
+            date: result.page_age || result.age || 'Recent',
+            favicon: result.favicon,
+            age: result.age,
+          });
         }
-      ],
-      max_tokens: 2048,
-      temperature: 0.5
+      });
+    }
+
+    // Remove duplicates
+    const uniqueNews = Array.from(
+      new Map(newsItems.map(item => [item.url, item])).values()
+    ).slice(0, max_results);
+
+    // Calculate overall sentiment (simple heuristic)
+    const sentimentKeywords = {
+      positive: ['surge', 'rally', 'growth', 'adoption', 'partnership', 'launch', 'breakthrough'],
+      negative: ['crash', 'decline', 'hack', 'scam', 'regulation', 'ban', 'fraud'],
+    };
+
+    const sentimentScores = uniqueNews.map(item => {
+      const text = `${item.title} ${item.description}`.toLowerCase();
+      const positiveCount = sentimentKeywords.positive.filter(word => text.includes(word)).length;
+      const negativeCount = sentimentKeywords.negative.filter(word => text.includes(word)).length;
+
+      if (positiveCount > negativeCount) return 'positive';
+      if (negativeCount > positiveCount) return 'negative';
+      return 'neutral';
     });
 
-    // Parse response
-    let newsData: any;
-    try {
-      const responseText = typeof aiResponse.response === 'string'
-        ? aiResponse.response
-        : JSON.stringify(aiResponse.response);
-      newsData = JSON.parse(responseText);
-    } catch (e) {
-      newsData = {
-        news_items: [],
-        overall_market_sentiment: "neutral",
-        key_trends: ["Unable to parse news data"],
-        raw_response: aiResponse
-      };
-    }
+    const overall = sentimentScores.reduce((acc, s) => {
+      acc[s] = (acc[s] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const overallSentiment =
+      (overall.positive || 0) > (overall.negative || 0) ? 'bullish' :
+      (overall.negative || 0) > (overall.positive || 0) ? 'bearish' : 'neutral';
+
+    // Add sentiment to each news item
+    const newsWithSentiment = uniqueNews.map((item, index) => ({
+      ...item,
+      sentiment: sentimentScores[index],
+      relevance: 100 - (index * 2), // Decay relevance by position
+    }));
+
+    const result = {
+      news_items: newsWithSentiment,
+      overall_market_sentiment: overallSentiment,
+      key_trends: extractKeyTrends(newsWithSentiment),
+      total_results: newsWithSentiment.length,
+      sources: [...new Set(newsWithSentiment.map(n => n.source))],
+      date_range: {
+        from: '2025-01-01',
+        to: new Date().toISOString().split('T')[0],
+      },
+    };
 
     // Log analytics
     if (env.ANALYTICS) {
       env.ANALYTICS.writeDataPoint({
-        blobs: ['web_search', query, tokens.join(',')],
-        doubles: [newsData.news_items?.length || 0],
-        indexes: [newsData.overall_market_sentiment || 'neutral']
+        blobs: ['brave_search', query, tokens.join(',')],
+        doubles: [newsWithSentiment.length],
+        indexes: [overallSentiment]
       });
     }
 
     return {
       success: true,
-      data: newsData,
-      summary: `Found ${newsData.news_items?.length || 0} news items for ${query}`,
+      data: result,
+      summary: `Found ${newsWithSentiment.length} recent news articles from ${result.sources.length} sources. Market sentiment: ${overallSentiment}`,
       timestamp: new Date().toISOString()
     };
   } catch (error: any) {
@@ -115,4 +141,33 @@ Provide ${max_results} key news items in JSON format:
       timestamp: new Date().toISOString()
     };
   }
+}
+
+/**
+ * Extract key trends from news articles
+ */
+function extractKeyTrends(newsItems: any[]): string[] {
+  const trendKeywords = [
+    'DeFi', 'NFT', 'staking', 'yield farming', 'layer 2', 'L2',
+    'stablecoin', 'DEX', 'liquidity', 'governance', 'DAO',
+    'adoption', 'regulation', 'institutional', 'ETF',
+    'Sonic', 'S-USD', 'cross-border', 'payments'
+  ];
+
+  const mentions: Record<string, number> = {};
+
+  newsItems.forEach(item => {
+    const text = `${item.title} ${item.description}`.toLowerCase();
+    trendKeywords.forEach(keyword => {
+      if (text.includes(keyword.toLowerCase())) {
+        mentions[keyword] = (mentions[keyword] || 0) + 1;
+      }
+    });
+  });
+
+  // Return top 5 trending topics
+  return Object.entries(mentions)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([keyword]) => keyword);
 }

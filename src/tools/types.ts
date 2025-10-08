@@ -11,7 +11,10 @@ export interface Env {
   CONFIG_DB: D1Database;
   ANALYTICS: AnalyticsEngineDataset;
   CRYPTO_QUEUE: Queue;
+  DATA_UPDATE_WORKFLOW?: Workflow;
+  DATA_SEEDING_WORKFLOW?: Workflow;
   COINDESK_API_KEY: string;
+  BRAVE_API_KEY: string;
   AI_GATEWAY_TOKEN?: string;
   ANTHROPIC_API_KEY?: string;
 }
