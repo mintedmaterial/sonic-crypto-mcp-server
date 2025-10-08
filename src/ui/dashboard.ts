@@ -1,25 +1,39 @@
-// Sonic-themed dashboard HTML with animated starfield and AI chat
+// Sonic-themed dashboard with logo rainfall background and AI chat
+// Matches the Sonic Genie branding: neutral-950 background, orange accents
 
 export function getSonicDashboardHTML(): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sonic Crypto MCP Dashboard</title>
+  <title>Sonic Crypto MCP Server</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    :root {
+      --bg-primary: #0a0a0b;
+      --bg-secondary: #18181b;
+      --bg-card: #27272a;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --accent-orange: #f97316;
+      --accent-orange-hover: #ea580c;
+      --border: #3f3f46;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-      background: #000011;
-      color: #FFFFFF;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* Animated starfield background */
-    #starfield {
+    /* Logo rainfall background canvas */
+    #logo-rain {
       position: fixed;
       top: 0;
       left: 0;
@@ -29,92 +43,122 @@ export function getSonicDashboardHTML(): string {
       pointer-events: none;
     }
 
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
+    /* Gradient overlay for depth */
+    .gradient-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2), transparent);
+      pointer-events: none;
+      z-index: 1;
     }
 
-    /* Main content */
+    /* Main container */
     .container {
       position: relative;
-      z-index: 1;
-      max-width: 1600px;
+      z-index: 2;
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 1rem;
     }
 
     /* Header */
     .header {
-      background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 153, 204, 0.1));
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      padding: 30px;
-      border-radius: 20px;
-      margin-bottom: 30px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      border-radius: 16px;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(20px);
+      background: rgba(39, 39, 42, 0.8);
     }
 
     h1 {
-      color: #00D4FF;
-      font-size: 2.5em;
-      margin-bottom: 10px;
-      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    .subtitle { color: #99E6FF; font-size: 1.1em; }
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
 
+    /* Grid layout */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
     }
 
+    /* Cards */
     .card {
-      background: rgba(0, 17, 34, 0.8);
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      border-radius: 15px;
-      padding: 25px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.1);
-      transition: all 0.3s ease;
+      background: rgba(39, 39, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      backdrop-filter: blur(20px);
+      transition: all 0.2s ease;
     }
 
     .card:hover {
-      border-color: rgba(0, 212, 255, 0.6);
-      box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2);
+      border-color: var(--accent-orange);
       transform: translateY(-2px);
     }
 
-    .card h2 { color: #00D4FF; margin-bottom: 15px; font-size: 1.4em; }
+    .card h2 {
+      color: var(--text-primary);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
+    /* Price items */
     .price-item {
-      margin: 15px 0;
-      padding: 15px;
-      background: rgba(0, 212, 255, 0.05);
-      border-left: 3px solid #00D4FF;
+      margin: 0.75rem 0;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 3px solid var(--accent-orange);
       border-radius: 8px;
     }
 
-    .price-label { color: #99E6FF; font-size: 0.9em; margin-bottom: 5px; }
-    .price-value {
-      font-size: 1.8em;
-      font-weight: bold;
-      color: #00FFFF;
-      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    .price-label {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
     }
 
-    .price-change { font-size: 1em; font-weight: 600; margin-top: 5px; }
-    .price-change.positive { color: #10b981; }
-    .price-change.negative { color: #ef4444; }
+    .price-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
 
+    .price-change {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-top: 0.25rem;
+    }
+
+    .price-change.positive { color: var(--success); }
+    .price-change.negative { color: var(--error); }
+
+    /* Chat container */
     .chat-container {
       grid-column: 1 / -1;
-      background: rgba(0, 17, 34, 0.9);
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      border-radius: 15px;
-      padding: 25px;
-      backdrop-filter: blur(10px);
+      background: rgba(39, 39, 42, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      backdrop-filter: blur(20px);
       min-height: 500px;
       display: flex;
       flex-direction: column;
@@ -123,19 +167,20 @@ export function getSonicDashboardHTML(): string {
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      margin-bottom: 20px;
-      padding: 15px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 10px;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
       max-height: 400px;
     }
 
     .message {
-      margin: 10px 0;
-      padding: 12px 16px;
+      margin: 0.75rem 0;
+      padding: 0.875rem 1rem;
       border-radius: 12px;
-      max-width: 80%;
+      max-width: 85%;
       animation: fadeIn 0.3s ease;
+      line-height: 1.5;
     }
 
     @keyframes fadeIn {
@@ -144,140 +189,208 @@ export function getSonicDashboardHTML(): string {
     }
 
     .message.user {
-      background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 153, 204, 0.2));
-      border: 1px solid rgba(0, 212, 255, 0.3);
+      background: var(--accent-orange);
+      color: white;
       margin-left: auto;
       text-align: right;
     }
 
     .message.assistant {
-      background: rgba(0, 212, 255, 0.1);
-      border: 1px solid rgba(0, 212, 255, 0.2);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       margin-right: auto;
     }
 
-    .chat-input-container { display: flex; gap: 10px; }
+    .chat-input-container {
+      display: flex;
+      gap: 0.75rem;
+    }
+
     .chat-input {
       flex: 1;
-      padding: 15px;
-      background: rgba(0, 212, 255, 0.1);
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      border-radius: 10px;
-      color: #FFFFFF;
-      font-size: 1em;
+      padding: 0.875rem 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.9375rem;
+      transition: all 0.2s;
     }
 
     .chat-input:focus {
       outline: none;
-      border-color: #00D4FF;
-      box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+      border-color: var(--accent-orange);
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
     }
 
+    .chat-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    /* Buttons */
     button {
-      background: linear-gradient(135deg, #00D4FF, #0099CC);
+      background: var(--accent-orange);
       color: white;
       border: none;
-      padding: 12px 24px;
-      border-radius: 10px;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 1em;
+      font-size: 0.9375rem;
       font-weight: 600;
-      transition: all 0.3s;
-      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+      background: var(--accent-orange-hover);
+      transform: translateY(-1px);
     }
 
+    button:active {
+      transform: translateY(0);
+    }
+
+    /* Loading spinner */
     .spinner {
-      border: 3px solid rgba(0, 212, 255, 0.3);
-      border-top: 3px solid #00D4FF;
+      border: 3px solid rgba(249, 115, 22, 0.2);
+      border-top-color: var(--accent-orange);
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 24px;
+      height: 24px;
       animation: spin 1s linear infinite;
-      margin: 20px auto;
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      to { transform: rotate(360deg); }
     }
 
-    .loading { text-align: center; padding: 20px; color: #99E6FF; }
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    /* Error message */
     .error {
       background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      padding: 15px;
+      border: 1px solid var(--error);
+      padding: 1rem;
       border-radius: 8px;
-      color: #ff8888;
+      color: var(--error);
     }
 
+    /* Sentiment box */
     .sentiment-box {
-      background: rgba(0, 212, 255, 0.05);
-      border-left: 4px solid #00D4FF;
-      padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border-left: 4px solid var(--accent-orange);
+      padding: 1rem;
       border-radius: 8px;
-      margin-top: 15px;
+      margin-top: 0.75rem;
       line-height: 1.6;
     }
 
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-orange);
+    }
+
+    /* Responsive */
     @media (max-width: 768px) {
-      .grid { grid-template-columns: 1fr; }
-      h1 { font-size: 2em; }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      .container {
+        padding: 0.75rem;
+      }
     }
   </style>
 </head>
 <body>
-  <canvas id="starfield"></canvas>
+  <!-- Logo rainfall background -->
+  <canvas id="logo-rain"></canvas>
+  <div class="gradient-overlay"></div>
 
   <div class="container">
+    <!-- Header -->
     <div class="header">
-      <h1>🚀 Sonic Crypto MCP Dashboard</h1>
-      <p class="subtitle">Real-time cryptocurrency data powered by AI</p>
+      <h1>🚀 Sonic Crypto MCP Server</h1>
+      <p class="subtitle">Real-time cryptocurrency data powered by AI • <a href="/api/docs" style="color: var(--accent-orange);">API Docs</a></p>
     </div>
 
+    <!-- Data cards -->
     <div class="grid">
+      <!-- Live Prices -->
       <div class="card">
         <h2>📊 Live Prices</h2>
         <div id="prices-content">
-          <div class="loading"><div class="spinner"></div>Loading price data...</div>
+          <div class="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 0.5rem;">Loading prices...</p>
+          </div>
         </div>
-        <button onclick="refreshPrices()" style="margin-top: 15px; width: 100%;">🔄 Refresh Prices</button>
+        <button onclick="refreshPrices()" style="margin-top: 1rem; width: 100%;">🔄 Refresh</button>
       </div>
 
+      <!-- Market Sentiment -->
       <div class="card">
         <h2>🧠 Market Sentiment</h2>
         <div id="sentiment-content">
-          <div class="loading"><div class="spinner"></div>Analyzing sentiment...</div>
+          <div class="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 0.5rem;">Analyzing...</p>
+          </div>
         </div>
-        <button onclick="refreshSentiment()" style="margin-top: 15px; width: 100%;">🔄 Analyze Sentiment</button>
+        <button onclick="refreshSentiment()" style="margin-top: 1rem; width: 100%;">🔄 Analyze</button>
       </div>
 
+      <!-- Crypto News -->
       <div class="card">
         <h2>📰 Latest News</h2>
         <div id="news-content">
-          <div class="loading"><div class="spinner"></div>Fetching news...</div>
+          <div class="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 0.5rem;">Fetching news...</p>
+          </div>
         </div>
-        <button onclick="refreshNews()" style="margin-top: 15px; width: 100%;">🔄 Refresh News</button>
+        <button onclick="refreshNews()" style="margin-top: 1rem; width: 100%;">🔄 Refresh</button>
       </div>
     </div>
 
+    <!-- AI Chat -->
     <div class="chat-container">
       <h2>💬 AI Chat Assistant</h2>
-      <p style="color: #99E6FF; margin-bottom: 15px;">Ask about Sonic ecosystem, market data, or crypto analysis</p>
+      <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9375rem;">Ask about Sonic ecosystem, prices, sentiment, or DeFi opportunities</p>
 
       <div class="chat-messages" id="chat-messages">
         <div class="message assistant">
-          👋 Hello! I'm your Sonic Crypto AI assistant. I can help you with:
-          <br>• Live cryptocurrency prices
-          <br>• Market sentiment analysis
-          <br>• Crypto news and updates
-          <br>• DeFi opportunities
-          <br>• Technical analysis
-          <br><br>What would you like to know?
+          👋 Hello! I'm your Sonic Crypto AI assistant powered by Hermes 2 Pro Mistral 7B.<br><br>
+          I can help you with:<br>
+          • Live cryptocurrency prices (BTC, ETH, S-USD, SONIC)<br>
+          • Market sentiment analysis<br>
+          • Crypto news and updates<br>
+          • DeFi opportunities on Sonic<br>
+          • Technical analysis<br><br>
+          What would you like to know?
         </div>
       </div>
 
@@ -286,56 +399,61 @@ export function getSonicDashboardHTML(): string {
           type="text"
           class="chat-input"
           id="chat-input"
-          placeholder="Ask about Sonic, prices, sentiment..."
+          placeholder="Ask me about Sonic, prices, opportunities..."
           onkeypress="if(event.key==='Enter') sendMessage()"
         />
-        <button onclick="sendMessage()">Send</button>
+        <button onclick="sendMessage()">Send →</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Animated starfield
-    const canvas = document.getElementById('starfield');
+    // Logo rainfall animation
+    const canvas = document.getElementById('logo-rain');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
 
-    const stars = [];
-    for (let i = 0; i < 200; i++) {
-      stars.push({
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const logos = [];
+    const logoCount = 30;
+
+    for (let i = 0; i < logoCount; i++) {
+      logos.push({
         x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        radius: Math.random() * 2,
-        speed: Math.random() * 0.5 + 0.1
+        y: Math.random() * canvas.height - canvas.height,
+        speed: Math.random() * 2 + 1,
+        size: Math.random() * 30 + 15,
+        opacity: Math.random() * 0.3 + 0.1
       });
     }
 
-    function drawStars() {
+    function drawLogos() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'white';
 
-      stars.forEach(star => {
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        ctx.fill();
+      logos.forEach(logo => {
+        ctx.globalAlpha = logo.opacity;
+        ctx.fillStyle = '#f97316';
+        ctx.font = \`\${logo.size}px Arial\`;
+        ctx.fillText('S', logo.x, logo.y);
 
-        star.y += star.speed;
-        if (star.y > canvas.height) {
-          star.y = 0;
-          star.x = Math.random() * canvas.width;
+        logo.y += logo.speed;
+
+        if (logo.y > canvas.height + logo.size) {
+          logo.y = -logo.size;
+          logo.x = Math.random() * canvas.width;
         }
       });
 
-      requestAnimationFrame(drawStars);
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(drawLogos);
     }
 
-    drawStars();
-
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+    drawLogos();
 
     // API functions
     async function callMCPTool(toolName, args) {
@@ -347,9 +465,10 @@ export function getSonicDashboardHTML(): string {
       return await response.json();
     }
 
+    // Refresh prices
     async function refreshPrices() {
       const el = document.getElementById('prices-content');
-      el.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+      el.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top: 0.5rem;">Loading...</p></div>';
 
       try {
         const result = await callMCPTool('get_latest_index_tick', {
@@ -378,7 +497,7 @@ export function getSonicDashboardHTML(): string {
             \`;
           });
 
-          el.innerHTML = html || '<p>No price data available</p>';
+          el.innerHTML = html || '<p style="color: var(--text-secondary);">No price data available</p>';
         } else {
           throw new Error('Invalid response');
         }
@@ -387,9 +506,10 @@ export function getSonicDashboardHTML(): string {
       }
     }
 
+    // Refresh sentiment
     async function refreshSentiment() {
       const el = document.getElementById('sentiment-content');
-      el.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing...</div>';
+      el.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top: 0.5rem;">Analyzing...</p></div>';
 
       try {
         const result = await callMCPTool('analyze_sonic_market_sentiment', {
@@ -402,15 +522,13 @@ export function getSonicDashboardHTML(): string {
           const sentiment = result.data.sentiment;
           el.innerHTML = \`
             <div class="sentiment-box">
-              <strong>Overall Sentiment:</strong> \${sentiment.overall_sentiment || 'neutral'}
-              <br><strong>Confidence:</strong> \${sentiment.confidence || 0}%
-              <br><br>
-              <strong>Key Observations:</strong>
+              <strong>Overall:</strong> \${sentiment.overall_sentiment || 'neutral'}<br>
+              <strong>Confidence:</strong> \${sentiment.confidence || 0}%<br><br>
+              <strong>Observations:</strong>
               <ul style="margin: 10px 0 10px 20px;">
                 \${(sentiment.key_observations || []).map(obs => \`<li>\${obs}</li>\`).join('')}
               </ul>
-              <br>
-              <strong>Recommendation:</strong> \${sentiment.recommendation || 'Monitor markets'}
+              <br><strong>Recommendation:</strong> \${sentiment.recommendation || 'Monitor markets'}
             </div>
           \`;
         } else {
@@ -421,9 +539,10 @@ export function getSonicDashboardHTML(): string {
       }
     }
 
+    // Refresh news
     async function refreshNews() {
       const el = document.getElementById('news-content');
-      el.innerHTML = '<div class="loading"><div class="spinner"></div>Fetching...</div>';
+      el.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top: 0.5rem;">Fetching...</p></div>';
 
       try {
         const result = await callMCPTool('search_crypto_news', {
@@ -437,18 +556,18 @@ export function getSonicDashboardHTML(): string {
           let html = '';
 
           news.forEach(item => {
-            const sentimentColor = item.sentiment === 'positive' ? '#10b981' :
-                                  item.sentiment === 'negative' ? '#ef4444' : '#99E6FF';
+            const sentimentColor = item.sentiment === 'positive' ? 'var(--success)' :
+                                  item.sentiment === 'negative' ? 'var(--error)' : 'var(--accent-orange)';
             html += \`
-              <div style="margin: 10px 0; padding: 12px; background: rgba(0, 212, 255, 0.05); border-left: 3px solid \${sentimentColor}; border-radius: 8px;">
-                <div style="font-weight: 600; color: #00D4FF; margin-bottom: 5px;">\${item.title}</div>
-                <div style="font-size: 0.9em; color: #99E6FF;">\${item.summary}</div>
-                <div style="font-size: 0.8em; color: #666; margin-top: 5px;">\${item.source} • \${item.date}</div>
+              <div style="margin: 10px 0; padding: 12px; background: rgba(0, 0, 0, 0.2); border-left: 3px solid \${sentimentColor}; border-radius: 8px;">
+                <div style="font-weight: 600; margin-bottom: 5px;">\${item.title}</div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary);">\${item.summary}</div>
+                <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 5px;">\${item.source} • \${item.date}</div>
               </div>
             \`;
           });
 
-          el.innerHTML = html || '<p>No news available</p>';
+          el.innerHTML = html || '<p style="color: var(--text-secondary);">No news available</p>';
         } else {
           throw new Error('Failed to fetch news');
         }
@@ -457,6 +576,7 @@ export function getSonicDashboardHTML(): string {
       }
     }
 
+    // Send chat message with streaming
     async function sendMessage() {
       const input = document.getElementById('chat-input');
       const messages = document.getElementById('chat-messages');
@@ -468,10 +588,8 @@ export function getSonicDashboardHTML(): string {
       input.value = '';
       messages.scrollTop = messages.scrollHeight;
 
-      // Create assistant message container
       const assistantMsg = document.createElement('div');
       assistantMsg.className = 'message assistant';
-      assistantMsg.id = 'streaming-response';
       assistantMsg.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; display: inline-block;"></div>';
       messages.appendChild(assistantMsg);
       messages.scrollTop = messages.scrollHeight;
@@ -483,16 +601,13 @@ export function getSonicDashboardHTML(): string {
           body: JSON.stringify({ message: userMessage })
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to get response');
-        }
+        if (!response.ok) throw new Error('Failed to get response');
 
-        // Handle streaming response
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullText = '';
 
-        assistantMsg.innerHTML = ''; // Remove spinner
+        assistantMsg.innerHTML = '';
 
         while (true) {
           const { done, value } = await reader.read();
@@ -514,7 +629,7 @@ export function getSonicDashboardHTML(): string {
                   messages.scrollTop = messages.scrollHeight;
                 }
               } catch (e) {
-                // Ignore parse errors for partial chunks
+                // Ignore parse errors
               }
             }
           }
@@ -536,11 +651,9 @@ export function getSonicDashboardHTML(): string {
     refreshSentiment();
     refreshNews();
 
-    // Auto-refresh every 3 minutes
+    // Auto-refresh prices every 3 minutes
     setInterval(() => {
-      if (!document.hidden) {
-        refreshPrices();
-      }
+      if (!document.hidden) refreshPrices();
     }, 180000);
   </script>
 </body>
