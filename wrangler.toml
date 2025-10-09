@@ -19,6 +19,17 @@ ENVIRONMENT = "production"
 MCP_SERVER_NAME = "sonic-crypto-mcp"
 MCP_SERVER_VERSION = "1.0.0"
 
+# Discord Channel IDs
+NFT_DISCORD_CHANNEL_ID = "1333603176762576966"
+TWEET_DISCORD_CHANNEL_ID = "1333615004305330348"
+
+# NFT Gating Configuration
+BANDIT_KIDZ_CONTRACT = "0x45bc8a938e487fde4f31a7e051c2b63627f6f966"
+PAINTSWAP_COLLECTION_URL = "https://paintswap.finance/marketplace/collections/0x45bc8a938e487fde4f31a7e051c2b63627f6f966"
+
+# dRPC Configuration
+DRPC_HTTP_URL = "https://lb.drpc.org/sonic/"
+
 # AI Gateway binding for enhanced analysis
 [ai]
 binding = "AI"
@@ -116,5 +127,6 @@ preview_bucket_name = "sonic-market-reports-preview"
 # COINMARKETCAP_API_KEY - CoinMarketCap API for trending/global data (FREE PLAN)
 # DISCORD_BOT_TOKEN - Discord bot token for community intelligence
 # BRAVE_API_KEY - Brave Search API for news
+# DRPC_API_KEY - dRPC node API key for Web3 RPC calls
 # AI_GATEWAY_TOKEN - AI Gateway authentication (optional)
 # ANTHROPIC_API_KEY - Alternative AI provider (optional)

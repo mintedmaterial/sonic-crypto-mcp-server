@@ -34,8 +34,16 @@ export interface Env {
   BRAVE_API_KEY: string;
   COINMARKETCAP_API_KEY: string;
   DISCORD_BOT_TOKEN: string;
+  DRPC_API_KEY: string;
   AI_GATEWAY_TOKEN?: string;
   ANTHROPIC_API_KEY?: string;
+
+  // Environment Variables (from wrangler.toml [vars])
+  NFT_DISCORD_CHANNEL_ID: string;
+  TWEET_DISCORD_CHANNEL_ID: string;
+  BANDIT_KIDZ_CONTRACT: string;
+  PAINTSWAP_COLLECTION_URL: string;
+  DRPC_HTTP_URL: string;
 }
 
 export const CACHE_TTL = {
