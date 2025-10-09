@@ -50,6 +50,36 @@ export class D1StorageService {
   }
 
   /**
+   * Initialize credit tracking table
+   */
+  async initializeCreditTable(): Promise<void> {
+    try {
+      await this.env.CONFIG_DB.batch([
+        this.env.CONFIG_DB.prepare(`
+          CREATE TABLE IF NOT EXISTS api_credit_usage (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            endpoint TEXT NOT NULL,
+            credits_used INTEGER NOT NULL,
+            timestamp TEXT NOT NULL,
+            date TEXT NOT NULL,
+            metadata TEXT
+          )
+        `),
+        this.env.CONFIG_DB.prepare(`
+          CREATE INDEX IF NOT EXISTS idx_credit_date ON api_credit_usage(date)
+        `),
+        this.env.CONFIG_DB.prepare(`
+          CREATE INDEX IF NOT EXISTS idx_credit_endpoint ON api_credit_usage(endpoint)
+        `)
+      ]);
+      console.log('✅ Credit tracking table initialized');
+    } catch (error) {
+      console.error('Failed to initialize credit table:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Insert instrument metadata
    */
   async insertInstrument(

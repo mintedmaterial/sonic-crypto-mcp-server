@@ -545,14 +545,27 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
 
       // Initialize database
       if (path === '/api/init-db' && request.method === 'POST') {
-        await initializeD1Schema(env);
+        try {
+          await initializeD1Schema(env);
+          
+          // Also initialize credit tracking table
+          await d1.initializeCreditTable();
 
-        return new Response(JSON.stringify({
-          success: true,
-          message: 'Database initialized successfully'
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+          return new Response(JSON.stringify({
+            success: true,
+            message: 'Database and credit tracking initialized successfully'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: error.message
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
       }
 
       // Seed historical data

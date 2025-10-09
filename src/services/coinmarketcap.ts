@@ -302,6 +302,12 @@ export class CoinMarketCapService {
    */
   private async trackCreditUsage(endpoint: string, credits: number): Promise<void> {
     try {
+      // Skip if no CONFIG_DB
+      if (!this.env.CONFIG_DB) {
+        console.log('⚠️ CONFIG_DB not available, skipping credit tracking');
+        return;
+      }
+
       await this.env.CONFIG_DB.prepare(`
         INSERT INTO api_credit_usage (endpoint, credits_used, timestamp, date)
         VALUES (?, ?, ?, DATE('now'))
@@ -315,8 +321,13 @@ export class CoinMarketCapService {
           indexes: ['cmc']
         });
       }
-    } catch (error) {
-      console.error('Failed to track credit usage:', error);
+    } catch (error: any) {
+      // Gracefully handle missing table
+      if (error.message?.includes('no such table')) {
+        console.log('⚠️ Credit tracking table not initialized. Run /api/init-db to create tables.');
+      } else {
+        console.error('Failed to track credit usage:', error);
+      }
       // Don't throw - this is non-critical
     }
   }
@@ -326,6 +337,10 @@ export class CoinMarketCapService {
    */
   async getCreditUsageToday(): Promise<number> {
     try {
+      if (!this.env.CONFIG_DB) {
+        return 0;
+      }
+
       const result = await this.env.CONFIG_DB.prepare(`
         SELECT COALESCE(SUM(credits_used), 0) as total
         FROM api_credit_usage
@@ -333,8 +348,12 @@ export class CoinMarketCapService {
       `).first();
 
       return (result?.total as number) || 0;
-    } catch (error) {
-      console.error('Failed to get credit usage:', error);
+    } catch (error: any) {
+      if (error.message?.includes('no such table')) {
+        console.log('⚠️ Credit tracking table not initialized');
+      } else {
+        console.error('Failed to get credit usage:', error);
+      }
       return 0;
     }
   }

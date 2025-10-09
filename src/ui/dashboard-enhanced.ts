@@ -687,6 +687,7 @@ export function getEnhancedDashboardHTML(): string {
       <button class="nav-tab" onclick="showTab('charts')">📈 Charts</button>
       <button class="nav-tab" onclick="showTab('trading')">💱 Trading</button>
       <button class="nav-tab" onclick="showTab('intelligence')">🧠 Intelligence</button>
+      <button class="nav-tab" onclick="showTab('chat')">💬 AI Chat</button>
     </div>
     
     <!-- Tab: Overview -->
@@ -695,7 +696,7 @@ export function getEnhancedDashboardHTML(): string {
         <!-- Trending Gainers -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title">🔥 Top Gainers 24h</div>
+            <div class="card-title">💧 Top Sonic Gainers 24h</div>
             <div class="card-action" onclick="refreshTrending()">🔄</div>
           </div>
           <div id="trending-gainers">
@@ -706,7 +707,7 @@ export function getEnhancedDashboardHTML(): string {
         <!-- Trending Losers -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title">❄️ Top Losers 24h</div>
+            <div class="card-title">📉 Top Sonic Losers 24h</div>
             <div class="card-action" onclick="refreshTrending()">🔄</div>
           </div>
           <div id="trending-losers">
@@ -881,6 +882,38 @@ export function getEnhancedDashboardHTML(): string {
         </div>
       </div>
     </div>
+    
+    <!-- Tab: AI Chat -->
+    <div id="tab-chat" class="tab-content">
+      <div class="grid grid-1">
+        <div class="card" style="max-width: 900px; margin: 0 auto; width: 100%;">
+          <div class="card-header">
+            <div class="card-title">💬 AI Assistant</div>
+            <button class="card-action" style="padding: 0.5rem 1rem;" onclick="clearChat()">Clear</button>
+          </div>
+          
+          <div id="chat-messages" style="max-height: 500px; overflow-y: auto; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 1rem;">
+            <div class="info-text" style="text-align: center; padding: 2rem;">
+              <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">👋 Hello! I'm your Sonic Crypto AI Assistant</p>
+              <p>Ask me anything about cryptocurrency markets, Sonic blockchain, prices, sentiment analysis, or trading strategies!</p>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 0.5rem;">
+            <input 
+              type="text" 
+              id="chat-input" 
+              placeholder="Ask about crypto prices, market trends, or trading advice..." 
+              style="flex: 1; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 8px; color: var(--text-primary);"
+              onkeypress="if(event.key === 'Enter') sendMessage()"
+            />
+            <button onclick="sendMessage()" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--accent-orange), var(--accent-blue)); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   
   <script>
@@ -968,6 +1001,102 @@ export function getEnhancedDashboardHTML(): string {
     // TAB NAVIGATION
     // =========================
     
+    // =========================
+    // AI CHAT FUNCTIONS
+    // =========================
+    
+    let chatHistory = [];
+    
+    async function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      // Add user message
+      addChatMessage('user', message);
+      input.value = '';
+      
+      // Add loading message
+      const loadingId = addChatMessage('assistant', '💭 Thinking...');
+      
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: message,
+            history: chatHistory
+          })
+        });
+        
+        const data = await response.json();
+        
+        // Remove loading message
+        document.getElementById(loadingId)?.remove();
+        
+        if (data.success) {
+          addChatMessage('assistant', data.response);
+          chatHistory.push({ role: 'user', content: message });
+          chatHistory.push({ role: 'assistant', content: data.response });
+        } else {
+          addChatMessage('assistant', '❌ Sorry, I encountered an error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (error) {
+        document.getElementById(loadingId)?.remove();
+        addChatMessage('assistant', '❌ Failed to connect to AI assistant');
+      }
+    }
+    
+    function addChatMessage(role, content) {
+      const messagesDiv = document.getElementById('chat-messages');
+      const messageId = 'msg-' + Date.now();
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.id = messageId;
+      messageDiv.style.cssText = \`
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: \${role === 'user' ? 'rgba(249, 115, 22, 0.2)' : 'rgba(59, 130, 246, 0.2)'};
+        border-left: 3px solid \${role === 'user' ? 'var(--accent-orange)' : 'var(--accent-blue)'};
+        border-radius: 8px;
+      \`;
+      
+      const roleLabel = document.createElement('div');
+      roleLabel.style.cssText = 'font-weight: 600; margin-bottom: 0.5rem; color: ' + (role === 'user' ? 'var(--accent-orange)' : 'var(--accent-blue)');
+      roleLabel.textContent = role === 'user' ? '👤 You' : '🤖 AI Assistant';
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.style.cssText = 'line-height: 1.6; white-space: pre-wrap;';
+      contentDiv.textContent = content;
+      
+      messageDiv.appendChild(roleLabel);
+      messageDiv.appendChild(contentDiv);
+      
+      // Remove welcome message if it exists
+      const welcome = messagesDiv.querySelector('.info-text');
+      if (welcome) welcome.remove();
+      
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      
+      return messageId;
+    }
+    
+    function clearChat() {
+      chatHistory = [];
+      document.getElementById('chat-messages').innerHTML = \`
+        <div class="info-text" style="text-align: center; padding: 2rem;">
+          <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">👋 Hello! I'm your Sonic Crypto AI Assistant</p>
+          <p>Ask me anything about cryptocurrency markets, Sonic blockchain, prices, sentiment analysis, or trading strategies!</p>
+        </div>
+      \`;
+    }
+    
+    // =========================
+    // TAB SWITCHING
+    // =========================
+    
     function showTab(tabName) {
       // Hide all tabs
       document.querySelectorAll('.tab-content').forEach(tab => {
@@ -1036,7 +1165,8 @@ export function getEnhancedDashboardHTML(): string {
       losersEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
       
       try {
-        const response = await fetch('/api/trending');
+        // Fetch Sonic blockchain trending (DexScreener)
+        const response = await fetch('/api/trending?source=sonic');
         const data = await response.json();
         
         if (data.success) {
@@ -1045,10 +1175,40 @@ export function getEnhancedDashboardHTML(): string {
             <div class="trending-item">
               <div class="trending-rank">\${i + 1}</div>
               <div class="trending-info">
-                <div class="trending-symbol">\${token.symbol}</div>
+                <div class="trending-symbol">💧 \${token.symbol}</div>
                 <div class="trending-name">\${token.name}</div>
               </div>
               <div class="trending-stats">
+                <div class="trending-price">$\${token.price < 0.01 ? token.price.toFixed(6) : token.price.toFixed(4)}</div>
+                <div class="trending-change price-change positive">+\${token.percent_change_24h.toFixed(2)}%</div>
+              </div>
+            </div>
+          \`).join('');
+          
+          // Render losers
+          losersEl.innerHTML = data.data.losers.slice(0, 5).map((token, i) => \`
+            <div class="trending-item">
+              <div class="trending-rank">\${i + 1}</div>
+              <div class="trending-info">
+                <div class="trending-symbol">💧 \${token.symbol}</div>
+                <div class="trending-name">\${token.name}</div>
+              </div>
+              <div class="trending-stats">
+                <div class="trending-price">$\${token.price < 0.01 ? token.price.toFixed(6) : token.price.toFixed(4)}</div>
+                <div class="trending-change price-change negative">\${token.percent_change_24h.toFixed(2)}%</div>
+              </div>
+            </div>
+          \`).join('');
+        } else {
+          gainersEl.innerHTML = '<div class="info-text">No Sonic gainers data available</div>';
+          losersEl.innerHTML = '<div class="info-text">No Sonic losers data available</div>';
+        }
+      } catch (error) {
+        console.error('Failed to load trending:', error);
+        gainersEl.innerHTML = '<div class="error-message">Failed to load trending data</div>';
+        losersEl.innerHTML = '<div class="error-message">Failed to load trending data</div>';
+      }
+    }
                 <div class="trending-price">$\${token.price.toFixed(token.price < 1 ? 6 : 2)}</div>
                 <div class="trending-change price-change positive">+\${token.percent_change_24h.toFixed(2)}%</div>
               </div>

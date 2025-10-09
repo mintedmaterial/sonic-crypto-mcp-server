@@ -241,4 +241,125 @@ export class DexScreenerService {
 
     return results;
   }
+
+  /**
+   * Get trending Sonic tokens - top gainers and losers on Sonic blockchain
+   */
+  async getTrendingSonicTokens(limit: number = 10): Promise<{
+    gainers: Array<{
+      symbol: string;
+      name: string;
+      price: number;
+      percent_change_24h: number;
+      volume_24h: number;
+      liquidity: number;
+      dexId: string;
+      url: string;
+    }>;
+    losers: Array<{
+      symbol: string;
+      name: string;
+      price: number;
+      percent_change_24h: number;
+      volume_24h: number;
+      liquidity: number;
+      dexId: string;
+      url: string;
+    }>;
+    timestamp: string;
+  }> {
+    const cacheKey = `trending-sonic:${limit}`;
+    
+    // Try cache first (5 min TTL for real-time trending)
+    try {
+      const cached = await this.env.SONIC_CACHE.get(cacheKey, { type: 'json' });
+      if (cached) {
+        console.log('✅ Trending Sonic tokens from cache');
+        return cached as any;
+      }
+    } catch (error) {
+      console.log('Cache miss for trending Sonic tokens');
+    }
+
+    try {
+      // Get all Sonic pairs
+      const response = await fetch(
+        `${this.baseUrl}/latest/dex/pairs/sonic`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': '*/*',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`DexScreener API error: ${response.status}`);
+      }
+
+      const data = await response.json() as any;
+      const pairs: DexScreenerToken[] = data.pairs || [];
+
+      // Filter for quality tokens (minimum liquidity and volume)
+      const qualityPairs = pairs.filter(p => 
+        (p.liquidity?.usd || 0) > 1000 && // Min $1k liquidity
+        (p.volume?.h24 || 0) > 100 && // Min $100 24h volume
+        p.priceChange?.h24 !== undefined
+      );
+
+      // Sort by 24h change
+      const sortedByChange = [...qualityPairs].sort((a, b) => 
+        (b.priceChange?.h24 || 0) - (a.priceChange?.h24 || 0)
+      );
+
+      // Get top gainers
+      const gainers = sortedByChange
+        .filter(p => (p.priceChange?.h24 || 0) > 0)
+        .slice(0, limit)
+        .map(p => ({
+          symbol: p.baseToken.symbol,
+          name: p.baseToken.name,
+          price: parseFloat(p.priceUsd),
+          percent_change_24h: p.priceChange?.h24 || 0,
+          volume_24h: p.volume?.h24 || 0,
+          liquidity: p.liquidity?.usd || 0,
+          dexId: p.dexId,
+          url: p.url
+        }));
+
+      // Get top losers
+      const losers = sortedByChange
+        .filter(p => (p.priceChange?.h24 || 0) < 0)
+        .sort((a, b) => (a.priceChange?.h24 || 0) - (b.priceChange?.h24 || 0))
+        .slice(0, limit)
+        .map(p => ({
+          symbol: p.baseToken.symbol,
+          name: p.baseToken.name,
+          price: parseFloat(p.priceUsd),
+          percent_change_24h: p.priceChange?.h24 || 0,
+          volume_24h: p.volume?.h24 || 0,
+          liquidity: p.liquidity?.usd || 0,
+          dexId: p.dexId,
+          url: p.url
+        }));
+
+      const result = {
+        gainers,
+        losers,
+        timestamp: new Date().toISOString()
+      };
+
+      // Cache for 5 minutes
+      await this.env.SONIC_CACHE.put(cacheKey, JSON.stringify(result), {
+        expirationTtl: 300
+      });
+
+      console.log(`✅ Trending Sonic tokens: ${gainers.length} gainers, ${losers.length} losers`);
+      return result;
+
+    } catch (error) {
+      console.error('DexScreener getTrendingSonicTokens error:', error);
+      throw error;
+    }
+  }
 }
