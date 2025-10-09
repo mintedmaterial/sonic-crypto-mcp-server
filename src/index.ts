@@ -544,6 +544,38 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
         });
       }
 
+      // NFT verification endpoint
+      if (path === '/api/verify-nft' && request.method === 'POST') {
+        try {
+          const { walletAddress } = await request.json() as any;
+
+          if (!walletAddress) {
+            return new Response(JSON.stringify({ error: 'walletAddress required' }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+
+          const { NFTVerificationService } = await import('./services/nft-verification');
+          const nftService = new NFTVerificationService(env, 146);
+
+          const result = await nftService.verifyWithCache(walletAddress);
+
+          return new Response(JSON.stringify(result, null, 2), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            error: error.message || 'Verification failed',
+            isHolder: false,
+            balance: 0
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
       // ===== Data Management Endpoints =====
 
       // Initialize database

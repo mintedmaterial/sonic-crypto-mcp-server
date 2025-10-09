@@ -686,6 +686,20 @@ export function getEnhancedDashboardHTML(): string {
           <div class="stat-value">Loading...</div>
         </div>
       </div>
+
+      <!-- Wallet Connection -->
+      <div id="wallet-section" style="display: flex; align-items: center; gap: 1rem;">
+        <button id="connect-wallet-btn" onclick="connectWallet()" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #f97316, #3b82f6); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+          Connect Wallet
+        </button>
+        <div id="wallet-info" style="display: none;">
+          <div style="text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Connected</div>
+            <div id="wallet-address" style="font-weight: 600; font-size: 0.875rem;"></div>
+            <div id="nft-status" style="font-size: 0.75rem; margin-top: 0.25rem;"></div>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- Navigation -->
@@ -693,6 +707,7 @@ export function getEnhancedDashboardHTML(): string {
       <button class="nav-tab active" onclick="showTab('overview')">📊 Overview</button>
       <button class="nav-tab" onclick="showTab('charts')">📈 Charts</button>
       <button class="nav-tab" onclick="showTab('trading')">💱 Trading</button>
+      <button class="nav-tab" onclick="showTab('swap')">🔄 Swap</button>
       <button class="nav-tab" onclick="showTab('intelligence')">🧠 Intelligence</button>
       <button class="nav-tab" onclick="showTab('chat')">💬 AI Chat</button>
     </div>
@@ -834,7 +849,59 @@ export function getEnhancedDashboardHTML(): string {
         </div>
       </div>
     </div>
-    
+
+    <!-- Tab: Swap (OpenOcean Widget) -->
+    <div id="tab-swap" class="tab-content">
+      <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-header">
+          <div class="card-title">🔄 Token Swap</div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">Powered by OpenOcean</span>
+          </div>
+        </div>
+
+        <div id="swap-network-status" style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600;">Network Status</div>
+              <div id="swap-chain-name" style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                Not connected
+              </div>
+            </div>
+            <div id="swap-status-badge" style="padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: rgba(239, 68, 68, 0.2); color: var(--accent-red);">
+              Connect Wallet
+            </div>
+          </div>
+        </div>
+
+        <div id="openocean-widget-container" style="display: none;">
+          <iframe
+            src="https://widget.openocean.finance?p=JTIzMTcxMjJCJTI0KiUyNCUyMzIyMjAzNyUyNColMjQlMjMxNzEyMmIlMjQqJTI0JTIzMjkyNzNEJTI0KiUyNCUyM2ZmZiUyNColMjQlMjM4QzdGOEMlMjQqJTI0JTIzZmI1MzRmJTI0KiUyNCUyM2ZmZmZmZiUyNColMjQlMjMzMzMxNDclMjQqJTI0JTIzYjFhN2IxJTI0KiUyNCUyMzQ3OWE0YiUyNColMjQlMjM3NzFFMTElMjQqJTI0T3Blbk9jZWFuJTI0KiUyNFJvYm90byUyNColMjRodHRwcyUzQSUyRiUyRnNydmNmbG8uY29tJTJGJTI0KiUyNFNydmNmbG8lMjBBSSUyNColMjQweDBmNENCZTUzMkUzNEU0RGZjYjY0OEFkZjE0NTAxMGIzOGVkNUU4ZTglMjQqJTI0MC43NSUyNColMjRzb25pYyUyNColMjR3UyUyNColMjRVU0RDLmUlMjQqJTI0"
+            width="100%"
+            height="600"
+            style="border: none; border-radius: 8px; background: rgba(0,0,0,0.2);"
+            title="OpenOcean Swap Widget"
+            allow="clipboard-read; clipboard-write"
+          ></iframe>
+        </div>
+
+        <div id="swap-connect-prompt" style="padding: 2rem; text-align: center; background: rgba(0,0,0,0.2); border-radius: 8px;">
+          <p style="margin-bottom: 1rem;">Connect your wallet to access the swap widget</p>
+          <button onclick="connectWallet()" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #f97316, #3b82f6); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+            Connect Wallet
+          </button>
+        </div>
+
+        <div style="margin-top: 1rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; font-size: 0.75rem; color: var(--text-secondary);">
+          <div style="font-weight: 600; margin-bottom: 0.5rem;">Features:</div>
+          <div>• Best rates across all Sonic DEXs</div>
+          <div>• Gas-optimized routing with MEV protection</div>
+          <div>• Referral rewards for Srvcflo AI (0.75% fee)</div>
+          <div>• Supports wS ↔ USDC.e swaps on Sonic Mainnet</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Tab: Intelligence -->
     <div id="tab-intelligence" class="tab-content">
       <div class="grid grid-3">
@@ -1766,6 +1833,164 @@ location.reload();
     }
     
     // =========================
+    // WALLET CONNECTION & NFT GATING
+    // =========================
+
+    let connectedAddress = null;
+    let isNFTHolder = false;
+
+    async function connectWallet() {
+      if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask or another Web3 wallet');
+        return;
+      }
+
+      try {
+        // Request account access
+        const accounts = await window.ethereum.request({
+          method: 'eth_requestAccounts'
+        });
+
+        const address = accounts[0];
+        connectedAddress = address;
+
+        // Get current chain ID
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const chainIdDecimal = parseInt(chainId, 16);
+
+        // Update UI
+        document.getElementById('connect-wallet-btn').style.display = 'none';
+        document.getElementById('wallet-info').style.display = 'block';
+        document.getElementById('wallet-address').textContent =
+          \`\${address.slice(0, 6)}...\${address.slice(-4)}\`;
+
+        // Verify NFT ownership
+        await verifyNFT(address);
+
+        // Update swap tab
+        updateSwapStatus(chainIdDecimal);
+
+        // Listen for account changes
+        window.ethereum.on('accountsChanged', (accounts) => {
+          if (accounts.length === 0) {
+            disconnectWallet();
+          } else {
+            connectWallet();
+          }
+        });
+
+        // Listen for chain changes
+        window.ethereum.on('chainChanged', () => {
+          window.location.reload();
+        });
+
+      } catch (error) {
+        console.error('Wallet connection error:', error);
+        alert('Failed to connect wallet: ' + error.message);
+      }
+    }
+
+    async function verifyNFT(address) {
+      const nftStatusEl = document.getElementById('nft-status');
+      nftStatusEl.innerHTML = '<span style="color: #a1a1aa;">Checking NFT...</span>';
+
+      try {
+        const response = await fetch('/api/verify-nft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletAddress: address })
+        });
+
+        const data = await response.json();
+
+        if (data.isHolder && data.balance > 0) {
+          isNFTHolder = true;
+          nftStatusEl.innerHTML = \`<span style="color: #10b981;">✓ Bandit Kidz Holder (\${data.balance} NFTs)</span>\`;
+        } else {
+          isNFTHolder = false;
+          nftStatusEl.innerHTML = \`<span style="color: #ef4444;">⚠ No Bandit Kidz NFTs</span>\`;
+        }
+      } catch (error) {
+        console.error('NFT verification error:', error);
+        nftStatusEl.innerHTML = '<span style="color: #ef4444;">Verification failed</span>';
+      }
+    }
+
+    function updateSwapStatus(chainId) {
+      const chainNameEl = document.getElementById('swap-chain-name');
+      const statusBadgeEl = document.getElementById('swap-status-badge');
+      const widgetContainer = document.getElementById('openocean-widget-container');
+      const connectPrompt = document.getElementById('swap-connect-prompt');
+
+      if (chainId === 146) {
+        // Sonic Mainnet
+        chainNameEl.textContent = 'Sonic Mainnet (Chain ID: 146)';
+        statusBadgeEl.textContent = 'Ready';
+        statusBadgeEl.style.background = 'rgba(16, 185, 129, 0.2)';
+        statusBadgeEl.style.color = '#10b981';
+
+        // Show widget if connected
+        if (connectedAddress) {
+          widgetContainer.style.display = 'block';
+          connectPrompt.style.display = 'none';
+        }
+      } else {
+        chainNameEl.textContent = \`Chain ID: \${chainId} (Switch to Sonic Mainnet)\`;
+        statusBadgeEl.textContent = 'Wrong Network';
+        statusBadgeEl.style.background = 'rgba(239, 68, 68, 0.2)';
+        statusBadgeEl.style.color = '#ef4444';
+        widgetContainer.style.display = 'none';
+        connectPrompt.innerHTML = \`
+          <p style="margin-bottom: 1rem;">Please switch to Sonic Mainnet (Chain ID: 146)</p>
+          <button onclick="switchToSonic()" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #f97316, #3b82f6); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+            Switch Network
+          </button>
+        \`;
+        connectPrompt.style.display = 'block';
+      }
+    }
+
+    async function switchToSonic() {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x92' }], // 146 in hex
+        });
+      } catch (switchError) {
+        // Chain not added, add it
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0x92',
+                chainName: 'Sonic',
+                nativeCurrency: {
+                  name: 'Sonic',
+                  symbol: 'S',
+                  decimals: 18
+                },
+                rpcUrls: ['https://rpc.soniclabs.com'],
+                blockExplorerUrls: ['https://sonicscan.org']
+              }]
+            });
+          } catch (addError) {
+            console.error('Failed to add Sonic network:', addError);
+          }
+        }
+      }
+    }
+
+    function disconnectWallet() {
+      connectedAddress = null;
+      isNFTHolder = false;
+      document.getElementById('connect-wallet-btn').style.display = 'block';
+      document.getElementById('wallet-info').style.display = 'none';
+      document.getElementById('openocean-widget-container').style.display = 'none';
+      document.getElementById('swap-connect-prompt').style.display = 'block';
+    }
+
+    // =========================
     // INITIALIZATION
     // =========================
 
@@ -1783,6 +2008,15 @@ location.reload();
         refreshTrending();
         refreshPrices();
       }, 60000);
+
+      // Update Discord config with environment variables
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('nft_channel')) {
+        localStorage.setItem('discord_nft_channel', urlParams.get('nft_channel'));
+      }
+      if (urlParams.get('tweet_channel')) {
+        localStorage.setItem('discord_tweet_channel', urlParams.get('tweet_channel'));
+      }
     });
   </script>
 </body>
