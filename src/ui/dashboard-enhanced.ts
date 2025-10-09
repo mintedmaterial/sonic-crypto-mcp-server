@@ -1761,19 +1761,22 @@ location.reload();
     // =========================
     // INITIALIZATION
     // =========================
-    
-    // Load initial data
-    loadGlobalStats();
-    refreshTrending();
-    refreshPrices();
-    refreshSentiment();
-    
-    // Auto-refresh every 60 seconds
-    setInterval(() => {
+
+    // Wait for DOM to be ready before initializing
+    window.addEventListener('DOMContentLoaded', () => {
+      // Load initial data
       loadGlobalStats();
       refreshTrending();
       refreshPrices();
-    }, 60000);
+      refreshSentiment();
+
+      // Auto-refresh every 60 seconds
+      setInterval(() => {
+        loadGlobalStats();
+        refreshTrending();
+        refreshPrices();
+      }, 60000);
+    });
   </script>
 </body>
 </html>`;
