@@ -112,6 +112,9 @@ bucket_name = "sonic-market-reports"
 preview_bucket_name = "sonic-market-reports-preview"
 
 # Secrets (set with: wrangler secret put SECRET_NAME)
-# COINDESK_API_KEY
-# AI_GATEWAY_TOKEN
-# ANTHROPIC_API_KEY
+# COINDESK_API_KEY - CoinDesk API authentication
+# COINMARKETCAP_API_KEY - CoinMarketCap API for trending/global data (FREE PLAN)
+# DISCORD_BOT_TOKEN - Discord bot token for community intelligence
+# BRAVE_API_KEY - Brave Search API for news
+# AI_GATEWAY_TOKEN - AI Gateway authentication (optional)
+# ANTHROPIC_API_KEY - Alternative AI provider (optional)

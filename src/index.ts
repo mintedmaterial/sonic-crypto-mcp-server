@@ -7,6 +7,7 @@ import { AIService } from './services/ai';
 import { R2StorageService } from './storage/r2';
 import { D1StorageService } from './storage/d1';
 import { getSonicDashboardHTML } from './ui/dashboard';
+import { getEnhancedDashboardHTML } from './ui/dashboard-enhanced';
 import { CryptoDataCache } from './durable-objects/crypto-cache';
 import { MCPSessionManager } from './durable-objects/session-manager';
 import { ALL_TOOLS, executeTool } from './tools/index';
@@ -44,8 +45,15 @@ export default {
     }
 
     try {
-      // ===== Root path - Dashboard UI =====
+      // ===== Root path - Enhanced Dashboard UI =====
       if (path === '/') {
+        return new Response(getEnhancedDashboardHTML(), {
+          headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+        });
+      }
+
+      // Legacy dashboard route
+      if (path === '/legacy' || path === '/chat') {
         return new Response(getSonicDashboardHTML(), {
           headers: { ...corsHeaders, 'Content-Type': 'text/html' }
         });
@@ -263,6 +271,55 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
         });
       }
 
+      // Get historical daily OHLCV data
+      if (path === '/api/historical-daily') {
+        const args = request.method === 'POST'
+          ? await request.json()
+          : {
+              instruments: url.searchParams.get('instruments') ? JSON.parse(url.searchParams.get('instruments')!) : ['BTC-USD'],
+              start_date: url.searchParams.get('start_date') || new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0],
+              end_date: url.searchParams.get('end_date') || new Date().toISOString().split('T')[0]
+            };
+
+        const result = await executeTool('get_historical_ohlcv_daily', args, env);
+        return new Response(JSON.stringify(result, null, 2), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Get historical hourly OHLCV data
+      if (path === '/api/historical-hourly') {
+        const args = request.method === 'POST'
+          ? await request.json()
+          : {
+              instruments: url.searchParams.get('instruments') ? JSON.parse(url.searchParams.get('instruments')!) : ['BTC-USD'],
+              start_date: url.searchParams.get('start_date') || new Date(Date.now() - 7*24*60*60*1000).toISOString(),
+              end_date: url.searchParams.get('end_date') || new Date().toISOString()
+            };
+
+        const result = await executeTool('get_historical_ohlcv_hourly', args, env);
+        return new Response(JSON.stringify(result, null, 2), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Get historical minutes OHLCV data
+      if (path === '/api/historical-minutes') {
+        const args = request.method === 'POST'
+          ? await request.json()
+          : {
+              instruments: url.searchParams.get('instruments') ? JSON.parse(url.searchParams.get('instruments')!) : ['BTC-USD'],
+              start_date: url.searchParams.get('start_date') || new Date(Date.now() - 24*60*60*1000).toISOString(),
+              end_date: url.searchParams.get('end_date') || new Date().toISOString(),
+              interval: url.searchParams.get('interval') || '5'
+            };
+
+        const result = await executeTool('get_historical_ohlcv_minutes', args, env);
+        return new Response(JSON.stringify(result, null, 2), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       // ===== Service-Specific Endpoints =====
 
       // Orderly DEX Markets
@@ -336,6 +393,136 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
+      }
+
+      // ===== CoinMarketCap Endpoints =====
+
+      // Get trending gainers/losers
+      if (path === '/api/cmc/trending') {
+        try {
+          const limit = parseInt(url.searchParams.get('limit') || '10');
+          const cmc = new (await import('./services/coinmarketcap')).CoinMarketCapService(env);
+          const trending = await cmc.getTrendingGainersLosers(limit);
+          return new Response(JSON.stringify({ success: true, data: trending }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({ success: false, error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Get global market metrics
+      if (path === '/api/cmc/global') {
+        try {
+          const cmc = new (await import('./services/coinmarketcap')).CoinMarketCapService(env);
+          const metrics = await cmc.getGlobalMetrics();
+          return new Response(JSON.stringify({ success: true, data: metrics }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({ success: false, error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Get quotes for specific symbols
+      if (path === '/api/cmc/quotes') {
+        try {
+          const symbolsParam = url.searchParams.get('symbols') || 'BTC,ETH,SOL';
+          const symbols = symbolsParam.split(',').map(s => s.trim().toUpperCase());
+          const cmc = new (await import('./services/coinmarketcap')).CoinMarketCapService(env);
+          const quotes = await cmc.getQuotes(symbols);
+          return new Response(JSON.stringify({ success: true, data: quotes }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({ success: false, error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Get credit usage
+      if (path === '/api/cmc/credits') {
+        try {
+          const cmc = new (await import('./services/coinmarketcap')).CoinMarketCapService(env);
+          const usedToday = await cmc.getCreditUsageToday();
+          return new Response(JSON.stringify({ 
+            success: true, 
+            data: {
+              used_today: usedToday,
+              limit: 330,
+              remaining: Math.max(0, 330 - usedToday),
+              percentage: ((usedToday / 330) * 100).toFixed(1)
+            }
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({ success: false, error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Get trending crypto (via MCP tool)
+      if (path === '/api/trending') {
+        const args = request.method === 'POST'
+          ? await request.json()
+          : { limit: 10, time_period: '24h' };
+
+        const result = await executeTool('get_trending_crypto', args, env);
+        return new Response(JSON.stringify(result, null, 2), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Get global market data (via MCP tool)
+      if (path === '/api/global-market') {
+        const result = await executeTool('get_global_market_data', {}, env);
+        return new Response(JSON.stringify(result, null, 2), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Get opportunities (using sentiment tool as base)
+      if (path === '/api/opportunities') {
+        const args = request.method === 'POST'
+          ? await request.json()
+          : {
+              sentiment_sources: ['price_action', 'volume_analysis', 'market_trends'],
+              timeframe: '1d',
+              instruments: ['S-USD', 'BTC-USD', 'ETH-USD', 'SONIC-USD']
+            };
+
+        const result = await executeTool('analyze_sonic_market_sentiment', args, env);
+        return new Response(JSON.stringify(result, null, 2), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Get Discord community intelligence
+      if (path === '/api/discord/intel') {
+        const args = request.method === 'POST'
+          ? await request.json()
+          : {
+              nft_channel_id: url.searchParams.get('nft_channel'),
+              tweet_channel_id: url.searchParams.get('tweet_channel'),
+              limit: parseInt(url.searchParams.get('limit') || '50'),
+              intel_type: url.searchParams.get('type') || 'all'
+            };
+
+        const result = await executeTool('get_discord_community_intel', args, env);
+        return new Response(JSON.stringify(result, null, 2), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       }
 
       // Search crypto news

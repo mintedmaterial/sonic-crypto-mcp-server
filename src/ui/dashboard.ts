@@ -922,6 +922,7 @@ export function getSonicDashboardHTML(): string {
         'analyze_sonic_market_sentiment': '🧠',
         'search_crypto_news': '📰',
         'get_trending_crypto': '🔥',
+        'get_global_market_data': '🌍',
         'search_knowledge_base': '📚',
         'get_historical_ohlcv_daily': '📈',
         'get_historical_ohlcv_hourly': '⏰',
@@ -962,9 +963,10 @@ export function getSonicDashboardHTML(): string {
       const suggestions = [
         "What's the price of BTC right now?",
         "Should I buy S token?",
+        "What's trending in crypto today?",
+        "Show me global market stats",
         "What's the sentiment on ETH?",
-        "Compare BTC and ETH prices",
-        "What's trending in crypto today?"
+        "Compare BTC and ETH prices"
       ];
       
       const suggestionsHTML = \`

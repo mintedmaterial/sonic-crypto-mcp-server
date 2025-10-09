@@ -14,6 +14,9 @@ import {
   executeGetHistoricalHourly,
   executeGetHistoricalMinutes
 } from './historical-tool';
+import { trendingToolDefinition, executeGetTrending } from './trending-tool';
+import { globalMarketToolDefinition, executeGetGlobalMarket } from './global-market-tool';
+import { discordIntelToolDefinition, executeGetDiscordIntel } from './discord-intel-tool';
 
 // Export all tool definitions
 export const ALL_TOOLS: MCPTool[] = [
@@ -22,7 +25,10 @@ export const ALL_TOOLS: MCPTool[] = [
   webSearchToolDefinition,
   historicalDailyToolDefinition,
   historicalHourlyToolDefinition,
-  historicalMinutesToolDefinition
+  historicalMinutesToolDefinition,
+  trendingToolDefinition,
+  globalMarketToolDefinition,
+  discordIntelToolDefinition
 ];
 
 // Tool execution router
@@ -49,6 +55,15 @@ export async function executeTool(
 
     case 'get_historical_ohlcv_minutes':
       return await executeGetHistoricalMinutes(args, env);
+
+    case 'get_trending_crypto':
+      return await executeGetTrending(args, env);
+
+    case 'get_global_market_data':
+      return await executeGetGlobalMarket(args, env);
+
+    case 'get_discord_community_intel':
+      return await executeGetDiscordIntel(args, env);
 
     default:
       return {

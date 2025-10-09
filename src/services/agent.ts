@@ -92,6 +92,7 @@ Available intents:
 - sentiment_analysis: User wants market sentiment or should buy/sell advice
 - news_search: User wants latest news or updates
 - trending_query: User wants to know what's trending or popular
+- market_overview: User wants overall market statistics and trends
 - knowledge_query: User wants insights from research reports or predictions
 - general_question: General crypto question
 - comparison: Compare multiple assets
@@ -161,10 +162,11 @@ Respond ONLY with valid JSON. No other text.`;
       'price_query': ['get_latest_index_tick'],
       'sentiment_analysis': ['get_latest_index_tick', 'analyze_sonic_market_sentiment'],
       'news_search': ['search_crypto_news'],
-      'trending_query': [], // Will add get_trending_crypto in Phase 1
+      'trending_query': ['get_trending_crypto', 'get_global_market_data'],
       'knowledge_query': [], // Will add search_knowledge_base in Phase 2
       'comparison': ['get_latest_index_tick', 'analyze_sonic_market_sentiment'],
-      'general_question': []
+      'general_question': [],
+      'market_overview': ['get_global_market_data', 'get_trending_crypto']
     };
 
     const suggestedTools = intentToolMap[intent.intent] || [];
@@ -221,6 +223,23 @@ Respond ONLY with valid JSON. No other text.`;
           tokens: intent.entities.length > 0 ? intent.entities : ['Bitcoin', 'Ethereum', 'Sonic'],
           max_results: 5
         }
+      });
+    }
+
+    if (suggestedTools.includes('get_trending_crypto')) {
+      toolCalls.push({
+        name: 'get_trending_crypto',
+        arguments: {
+          limit: 10,
+          time_period: '24h'
+        }
+      });
+    }
+
+    if (suggestedTools.includes('get_global_market_data')) {
+      toolCalls.push({
+        name: 'get_global_market_data',
+        arguments: {}
       });
     }
 
