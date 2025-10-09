@@ -244,6 +244,7 @@ export class DexScreenerService {
 
   /**
    * Get trending Sonic tokens - top gainers and losers on Sonic blockchain
+   * Uses search API to gather Sonic chain pairs
    */
   async getTrendingSonicTokens(limit: number = 10): Promise<{
     gainers: Array<{
@@ -282,28 +283,70 @@ export class DexScreenerService {
     }
 
     try {
-      // Get all Sonic pairs
-      const response = await fetch(
-        `${this.baseUrl}/latest/dex/pairs/sonic`,
-        {
-          method: 'GET',
-          headers: {
-            'Accept': '*/*',
-          },
+      // Get Sonic chain pairs - search for popular Sonic tokens and known pairs
+      // DexScreener doesn't have a direct /pairs/sonic endpoint
+      const sonicTokens = ['S', 'SONIC', 'wS', 'scUSD', 'USDC', 'USDT', 'WETH', 'WBTC'];
+      let allPairs: DexScreenerToken[] = [];
+
+      // Fetch pairs for multiple tokens in parallel
+      const searchPromises = sonicTokens.map(async (token) => {
+        try {
+          const response = await fetch(
+            `${this.baseUrl}/latest/dex/search?q=${token}`,
+            {
+              method: 'GET',
+              headers: {
+                'Accept': '*/*',
+              },
+            }
+          );
+
+          if (!response.ok) {
+            return [];
+          }
+
+          const data = await response.json() as any;
+          const pairs = data.pairs || [];
+          
+          // Filter for Sonic chain only
+          return pairs.filter((p: DexScreenerToken) => p.chainId === 'sonic');
+        } catch (error) {
+          console.error(`Error fetching ${token}:`, error);
+          return [];
         }
+      });
+
+      const results = await Promise.all(searchPromises);
+      allPairs = results.flat();
+
+      // Remove duplicates by pair address
+      const uniquePairs = Array.from(
+        new Map(allPairs.map(p => [p.pairAddress, p])).values()
       );
 
-      if (!response.ok) {
-        throw new Error(`DexScreener API error: ${response.status}`);
+      console.log(`Found ${uniquePairs.length} unique Sonic pairs`);
+
+      // If we don't have enough pairs, try to get more via direct token addresses
+      if (uniquePairs.length < 20) {
+        console.log('Fetching additional Sonic pairs via known addresses...');
+        const knownAddresses = [
+          '0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38', // wS
+          '0xd3DCe716f3eF535C5Ff8d041c1A41C3bd89b97aE', // scUSD
+          '0x29219dd400f2Bf60E5a23d13Be72B486D4038894', // USDC
+        ];
+
+        try {
+          const additionalPairs = await this.getTokenData('sonic', knownAddresses);
+          uniquePairs.push(...additionalPairs);
+        } catch (error) {
+          console.log('Failed to fetch additional pairs:', error);
+        }
       }
 
-      const data = await response.json() as any;
-      const pairs: DexScreenerToken[] = data.pairs || [];
-
       // Filter for quality tokens (minimum liquidity and volume)
-      const qualityPairs = pairs.filter(p => 
-        (p.liquidity?.usd || 0) > 1000 && // Min $1k liquidity
-        (p.volume?.h24 || 0) > 100 && // Min $100 24h volume
+      const qualityPairs = uniquePairs.filter(p => 
+        (p.liquidity?.usd || 0) > 500 && // Min $500 liquidity
+        (p.volume?.h24 || 0) > 50 && // Min $50 24h volume
         p.priceChange?.h24 !== undefined
       );
 

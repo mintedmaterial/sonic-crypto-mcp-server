@@ -476,7 +476,10 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
       if (path === '/api/trending') {
         const args = request.method === 'POST'
           ? await request.json()
-          : { limit: 10, time_period: '24h' };
+          : { 
+              limit: parseInt(url.searchParams.get('limit') || '10'),
+              source: url.searchParams.get('source') || 'sonic'
+            };
 
         const result = await executeTool('get_trending_crypto', args, env);
         return new Response(JSON.stringify(result, null, 2), {
@@ -546,21 +549,28 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
       // Initialize database
       if (path === '/api/init-db' && request.method === 'POST') {
         try {
+          console.log('Initializing D1 schema...');
           await initializeD1Schema(env);
+          console.log('✅ D1 schema initialized');
           
           // Also initialize credit tracking table
+          console.log('Initializing credit tracking table...');
           await d1.initializeCreditTable();
+          console.log('✅ Credit tracking table initialized');
 
           return new Response(JSON.stringify({
             success: true,
-            message: 'Database and credit tracking initialized successfully'
+            message: 'Database and credit tracking initialized successfully',
+            tables_created: ['instruments', 'price_snapshots', 'api_credit_usage']
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         } catch (error: any) {
+          console.error('Init-db error:', error);
           return new Response(JSON.stringify({
             success: false,
-            error: error.message
+            error: error.message,
+            stack: error.stack
           }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
