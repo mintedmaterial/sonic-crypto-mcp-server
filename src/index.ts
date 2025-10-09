@@ -89,8 +89,9 @@ export default {
       }
 
       // ===== AI Chat Endpoint with Streaming =====
+      // ===== AI Chat Endpoint with Agentic Tool Calling =====
       if (path === '/api/chat' && request.method === 'POST') {
-        const { message } = await request.json() as any;
+        const { message, history = [] } = await request.json() as any;
 
         if (!message) {
           return new Response(JSON.stringify({ error: 'Message required' }), {
@@ -99,66 +100,119 @@ export default {
           });
         }
 
-        // Build context from user message
-        const lowerMessage = message.toLowerCase();
-        let context = '';
+        try {
+          // Use agent service for intelligent, autonomous tool calling
+          const { AgentService } = await import('./services/agent');
+          const agent = new AgentService(env);
+          const response = await agent.chat(message, history);
 
-        // Auto-fetch relevant data
-        if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('sonic')) {
-          const priceResult = await executeTool('get_latest_index_tick', {
-            market: 'cadli',
-            instruments: ['BTC-USD', 'ETH-USD', 'S-USD', 'SONIC-USD']
-          }, env);
-          context += `\nCurrent Prices: ${JSON.stringify(priceResult.data)}`;
+          // Log to analytics
+          if (env.ANALYTICS) {
+            env.ANALYTICS.writeDataPoint({
+              blobs: ['agent_chat', message.substring(0, 50), ...response.tools_used],
+              doubles: [response.tools_used.length],
+              indexes: ['chat']
+            });
+          }
+
+          return new Response(JSON.stringify(response), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          console.error('Agent chat error:', error);
+          return new Response(JSON.stringify({
+            message: `I encountered an issue: ${error.message}. I'm having trouble accessing my tools right now, but I can try to help with general information.`,
+            tools_used: [],
+            data: {},
+            citations: [],
+            error: error.message
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
         }
+      }
 
-        if (lowerMessage.includes('sentiment') || lowerMessage.includes('market') || lowerMessage.includes('opportunities')) {
-          const sentimentResult = await executeTool('analyze_sonic_market_sentiment', {
-            sentiment_sources: ['price_action', 'volume_analysis'],
-            timeframe: '1d'
-          }, env);
-          context += `\nMarket Sentiment: ${JSON.stringify(sentimentResult.data)}`;
-        }
+      // ===== Streaming Chat Endpoint (for real-time responses) =====
+      if (path === '/api/chat/stream' && request.method === 'POST') {
+        const { message, history = [] } = await request.json() as any;
 
-        // Use Hermes 2 Pro Mistral 7B with streaming
-        const systemPrompt = `You are a helpful cryptocurrency and DeFi assistant specializing in the Sonic blockchain ecosystem.
-You have access to real-time market data and can provide insights on:
-- Cryptocurrency prices and trends
-- Market sentiment analysis
-- DeFi opportunities on Sonic
-- Sonic ecosystem projects
-- Trading strategies
-
-Provide concise, accurate, and helpful responses. When discussing prices or data, use the context provided.
-${context ? `\nContext: ${context}` : ''}`;
-
-        const messages = [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ];
-
-        const stream = await env.AI.run('@hf/nousresearch/hermes-2-pro-mistral-7b', {
-          messages,
-          stream: true
-        });
-
-        // Log to analytics
-        if (env.ANALYTICS) {
-          env.ANALYTICS.writeDataPoint({
-            blobs: ['ai_chat', message.substring(0, 50)],
-            doubles: [1],
-            indexes: ['chat']
+        if (!message) {
+          return new Response(JSON.stringify({ error: 'Message required' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
-        return new Response(stream, {
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive'
+        try {
+          // Step 1: Get tool results using agent (non-streaming)
+          const { AgentService } = await import('./services/agent');
+          const agent = new AgentService(env);
+          
+          // Quick intent analysis
+          const lowerMessage = message.toLowerCase();
+          let context = '';
+
+          // Auto-fetch relevant data for streaming context
+          if (lowerMessage.includes('price') || lowerMessage.includes('cost')) {
+            const priceResult = await executeTool('get_latest_index_tick', {
+              market: 'orderly',
+              instruments: ['BTC-USD', 'ETH-USD', 'S-USD', 'SONIC-USD']
+            }, env);
+            context += `\nCurrent Prices: ${JSON.stringify(priceResult.data)}`;
           }
-        });
+
+          if (lowerMessage.includes('sentiment') || lowerMessage.includes('market')) {
+            const sentimentResult = await executeTool('analyze_sonic_market_sentiment', {
+              sentiment_sources: ['price_action', 'volume_analysis'],
+              timeframe: '1d'
+            }, env);
+            context += `\nMarket Sentiment: ${JSON.stringify(sentimentResult.data)}`;
+          }
+
+          // Step 2: Stream AI response with tool context
+          const systemPrompt = `You are an expert cryptocurrency analyst specializing in the Sonic blockchain.
+          
+You have access to real-time market data:
+${context}
+
+Provide concise, data-driven insights. Use specific numbers from the data when relevant.`;
+
+          const messages = [
+            { role: 'system', content: systemPrompt },
+            ...history.slice(-4),
+            { role: 'user', content: message }
+          ];
+
+          const stream = await env.AI.run('@hf/nousresearch/hermes-2-pro-mistral-7b', {
+            messages,
+            stream: true
+          });
+
+          // Log to analytics
+          if (env.ANALYTICS) {
+            env.ANALYTICS.writeDataPoint({
+              blobs: ['ai_chat_stream', message.substring(0, 50)],
+              doubles: [1],
+              indexes: ['chat_stream']
+            });
+          }
+
+          return new Response(stream, {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive'
+            }
+          });
+        } catch (error: any) {
+          console.error('Streaming chat error:', error);
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
       }
 
       // ===== Direct API Endpoints =====

@@ -291,6 +291,122 @@ export function getSonicDashboardHTML(): string {
       line-height: 1.6;
     }
 
+    /* Tool calling indicators */
+    .message.thinking {
+      font-style: italic;
+      opacity: 0.7;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    .tools-used {
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: rgba(249, 115, 22, 0.1);
+      border-left: 3px solid var(--accent-orange);
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .tools-label {
+      font-weight: 600;
+      margin-right: 8px;
+      color: var(--text-secondary);
+    }
+
+    .tool-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      margin: 2px 4px;
+      background: rgba(249, 115, 22, 0.2);
+      border-radius: 12px;
+      font-size: 0.8125rem;
+      color: var(--text-primary);
+    }
+
+    .citations {
+      margin-top: 8px;
+      font-size: 0.8125rem;
+    }
+
+    .citations summary {
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px 0;
+      user-select: none;
+    }
+
+    .citations summary:hover {
+      color: var(--accent-orange);
+    }
+
+    .citation-list {
+      margin-top: 8px;
+      padding-left: 16px;
+      border-left: 2px solid rgba(249, 115, 22, 0.3);
+    }
+
+    .citation {
+      padding: 4px 0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+    }
+
+    .citation strong {
+      color: var(--text-primary);
+    }
+
+    .suggested-prompts {
+      margin-bottom: 20px;
+      padding: 12px;
+      background: rgba(39, 39, 42, 0.6);
+      border-radius: 8px;
+      border: 1px solid rgba(249, 115, 22, 0.2);
+    }
+
+    .suggestions-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .suggestion-btn {
+      display: block;
+      width: 100%;
+      margin: 6px 0;
+      padding: 8px 12px;
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      border-radius: 6px;
+      color: var(--text-primary);
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+
+    .suggestion-btn:hover {
+      background: rgba(249, 115, 22, 0.2);
+      border-color: var(--accent-orange);
+      transform: translateX(4px);
+    }
+
+    .message-content {
+      line-height: 1.6;
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.1);
+      border-left-color: var(--error);
+    }
+
     /* Scrollbar styling */
     ::-webkit-scrollbar {
       width: 8px;
@@ -717,7 +833,7 @@ export function getSonicDashboardHTML(): string {
       }
     }
 
-    // Send chat message with streaming
+    // Send chat message with agentic tool calling
     async function sendMessage() {
       const input = document.getElementById('chat-input');
       const messages = document.getElementById('chat-messages');
@@ -725,72 +841,159 @@ export function getSonicDashboardHTML(): string {
 
       if (!userMessage) return;
 
+      // Add user message
       messages.innerHTML += \`<div class="message user">\${userMessage}</div>\`;
       input.value = '';
       messages.scrollTop = messages.scrollHeight;
 
-      const assistantMsg = document.createElement('div');
-      assistantMsg.className = 'message assistant';
-      assistantMsg.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; display: inline-block;"></div>';
-      messages.appendChild(assistantMsg);
+      // Show thinking indicator
+      const thinkingMsg = document.createElement('div');
+      thinkingMsg.className = 'message assistant thinking';
+      thinkingMsg.innerHTML = '🤔 Analyzing your request...';
+      messages.appendChild(thinkingMsg);
       messages.scrollTop = messages.scrollHeight;
 
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMessage })
+          body: JSON.stringify({ 
+            message: userMessage,
+            history: getChatHistory()
+          })
         });
 
         if (!response.ok) throw new Error('Failed to get response');
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullText = '';
-
-        assistantMsg.innerHTML = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
-
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.response) {
-                  fullText += parsed.response;
-                  assistantMsg.textContent = fullText;
-                  messages.scrollTop = messages.scrollHeight;
-                }
-              } catch (e) {
-                // Ignore parse errors
-              }
-            }
-          }
+        const data = await response.json();
+        
+        // Remove thinking indicator
+        thinkingMsg.remove();
+        
+        // Add assistant message
+        const assistantMsg = document.createElement('div');
+        assistantMsg.className = 'message assistant';
+        
+        let html = \`<div class="message-content">\${data.message}</div>\`;
+        
+        // Show which tools were used
+        if (data.tools_used && data.tools_used.length > 0) {
+          html += \`<div class="tools-used">
+            <span class="tools-label">📊 Data sources:</span>
+            \${data.tools_used.map(tool => {
+              const icon = getToolIcon(tool);
+              const name = formatToolName(tool);
+              return \`<span class="tool-badge">\${icon} \${name}</span>\`;
+            }).join('')}
+          </div>\`;
         }
-
-        if (!fullText) {
-          assistantMsg.textContent = 'Sorry, I couldn\\'t process that.';
+        
+        // Show citations (collapsible)
+        if (data.citations && data.citations.length > 0) {
+          html += \`<div class="citations">
+            <details>
+              <summary>📚 View sources (\${data.citations.length})</summary>
+              <div class="citation-list">
+                \${data.citations.map(citation => 
+                  \`<div class="citation">
+                    <strong>\${citation.source}</strong>
+                    <span class="timestamp">\${new Date(citation.timestamp).toLocaleTimeString()}</span>
+                  </div>\`
+                ).join('')}
+              </div>
+            </details>
+          </div>\`;
         }
+        
+        assistantMsg.innerHTML = html;
+        messages.appendChild(assistantMsg);
+        messages.scrollTop = messages.scrollHeight;
 
       } catch (error) {
-        assistantMsg.innerHTML = \`<span class="error">Error: \${error.message}</span>\`;
+        thinkingMsg.className = 'message assistant error';
+        thinkingMsg.innerHTML = \`<span class="error">❌ Error: \${error.message}</span>\`;
       }
+    }
 
-      messages.scrollTop = messages.scrollHeight;
+    // Helper functions
+    function getToolIcon(toolName) {
+      const icons = {
+        'get_latest_index_tick': '💹',
+        'analyze_sonic_market_sentiment': '🧠',
+        'search_crypto_news': '📰',
+        'get_trending_crypto': '🔥',
+        'search_knowledge_base': '📚',
+        'get_historical_ohlcv_daily': '📈',
+        'get_historical_ohlcv_hourly': '⏰',
+        'get_historical_ohlcv_minutes': '⚡'
+      };
+      return icons[toolName] || '🔧';
+    }
+
+    function formatToolName(toolName) {
+      return toolName
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    function getChatHistory() {
+      const messageElements = document.querySelectorAll('.message');
+      const history = [];
+      
+      // Get last 8 messages (4 exchanges) for context
+      const start = Math.max(0, messageElements.length - 8);
+      for (let i = start; i < messageElements.length; i++) {
+        const msg = messageElements[i];
+        if (!msg.classList.contains('thinking')) {
+          const content = msg.querySelector('.message-content')?.textContent || msg.textContent;
+          history.push({
+            role: msg.classList.contains('user') ? 'user' : 'assistant',
+            content: content.trim()
+          });
+        }
+      }
+      
+      return history;
+    }
+
+    // Suggested prompts to guide users
+    function addSuggestedPrompts() {
+      const container = document.getElementById('chat-messages');
+      const suggestions = [
+        "What's the price of BTC right now?",
+        "Should I buy S token?",
+        "What's the sentiment on ETH?",
+        "Compare BTC and ETH prices",
+        "What's trending in crypto today?"
+      ];
+      
+      const suggestionsHTML = \`
+        <div class="suggested-prompts">
+          <div class="suggestions-label">💡 Try asking:</div>
+          \${suggestions.map(prompt => 
+            \`<button class="suggestion-btn" onclick="askQuestion('\${prompt}')">
+              \${prompt}
+            </button>\`
+          ).join('')}
+        </div>
+      \`;
+      
+      // Prepend to chat (shows at top)
+      container.innerHTML = suggestionsHTML + container.innerHTML;
+    }
+
+    function askQuestion(question) {
+      document.getElementById('chat-input').value = question;
+      sendMessage();
     }
 
     // Auto-load data
     refreshPrices();
     refreshSentiment();
     refreshNews();
+    
+    // Initialize suggested prompts in chat
+    addSuggestedPrompts();
 
     // Auto-refresh prices every 3 minutes
     setInterval(() => {
