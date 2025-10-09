@@ -111,10 +111,10 @@ export class CoinMarketCapService {
         throw new Error(`CMC API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       // Sort by 24h change to get gainers and losers
-      const sortedByChange = data.data.sort((a: any, b: any) => 
+      const sortedByChange = data.data.sort((a: any, b: any) =>
         b.quote.USD.percent_change_24h - a.quote.USD.percent_change_24h
       );
 
@@ -206,7 +206,7 @@ export class CoinMarketCapService {
         throw new Error(`CMC API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       const quotes: Record<string, QuoteData> = {};
 
       // Transform to our format
@@ -262,7 +262,7 @@ export class CoinMarketCapService {
         throw new Error(`CMC API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       const metrics: GlobalMarketData = {
         active_cryptocurrencies: data.data.active_cryptocurrencies,
         total_cryptocurrencies: data.data.total_cryptocurrencies,

@@ -15,6 +15,8 @@ export interface Env {
   DATA_SEEDING_WORKFLOW?: Workflow;
   COINDESK_API_KEY: string;
   BRAVE_API_KEY: string;
+  COINMARKETCAP_API_KEY: string;
+  DISCORD_BOT_TOKEN: string;
   AI_GATEWAY_TOKEN?: string;
   ANTHROPIC_API_KEY?: string;
 }
