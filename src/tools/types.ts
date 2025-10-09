@@ -1,5 +1,8 @@
 // Shared types for Sonic Crypto MCP Server tools
 
+// Re-export Env from config for convenience
+export type { Env } from '../config/env';
+
 export interface MCPTool {
   name: string;
   description: string;
