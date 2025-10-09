@@ -1,7 +1,8 @@
 // Web search tool using Brave Search API for real crypto news
 // Only returns 2025+ articles
 
-import { Env, MCPTool, ToolExecutionResult } from './types';
+import { MCPTool, ToolExecutionResult } from './types';
+import { Env } from '../config/env';
 import { BraveSearchService } from '../services/brave-search';
 
 export const webSearchToolDefinition: MCPTool = {

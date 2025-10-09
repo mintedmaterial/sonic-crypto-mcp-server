@@ -1,7 +1,8 @@
 // Multi-source Price Data Tool with Smart Fallback
 // Priority: Orderly Network → DexScreener → CoinDesk
 
-import { Env, MCPTool, ToolExecutionResult } from './types';
+import { MCPTool, ToolExecutionResult } from './types';
+import { Env } from '../config/env';
 import { fetchCoinDeskData, getCachedData, setCachedData } from './coindesk-api';
 import { OrderlyService } from '../services/orderly';
 import { DexScreenerService } from '../services/dexscreener';

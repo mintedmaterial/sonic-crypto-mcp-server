@@ -296,7 +296,7 @@ export class DiscordCommunityService {
         sentiment: this.analyzeSentiment(msg.content),
         engagement_indicators: this.detectEngagementSignals(msg.content),
         has_image: Boolean((msg.attachments && msg.attachments.length > 0) || 
-                   (msg.embeds && msg.embeds.length > 0 && msg.embeds[0].image !== undefined)) || false
+                   (msg.embeds && msg.embeds.length > 0 && msg.embeds[0]?.image !== undefined))
       };
 
       // Extract Twitter URL if present

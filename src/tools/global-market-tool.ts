@@ -1,7 +1,8 @@
 // Global market metrics tool - get_global_market_data
 // Provides overall crypto market statistics from CoinMarketCap
 
-import { Env, MCPTool, ToolExecutionResult } from './types';
+import { MCPTool, ToolExecutionResult } from './types';
+import { Env } from '../config/env';
 import { CoinMarketCapService } from '../services/coinmarketcap';
 
 export const globalMarketToolDefinition: MCPTool = {

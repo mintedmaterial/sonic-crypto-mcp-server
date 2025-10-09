@@ -1,7 +1,8 @@
 // Trending cryptocurrency tool - get_trending_crypto
 // Provides top gainers and losers from Sonic blockchain via DexScreener
 
-import { Env, MCPTool, ToolExecutionResult } from './types';
+import { MCPTool, ToolExecutionResult } from './types';
+import { Env } from '../config/env';
 import { DexScreenerService } from '../services/dexscreener';
 import { CoinMarketCapService } from '../services/coinmarketcap';
 

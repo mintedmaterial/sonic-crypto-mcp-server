@@ -1,7 +1,8 @@
 // Discord Community Intelligence Tool
 // Monitors Discord channels for community activity and intelligence
 
-import { Env, MCPTool, ToolExecutionResult } from './types';
+import { MCPTool, ToolExecutionResult } from './types';
+import { Env } from '../config/env';
 import { DiscordCommunityService } from '../services/discord';
 
 export const discordIntelToolDefinition: MCPTool = {

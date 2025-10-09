@@ -111,10 +111,11 @@ export class CoinMarketCapService {
         throw new Error(`CMC API error: ${response.status}`);
       }
 
-      const data = await response.json() as any;
+      const result = await response.json();
+      const data = result as { data: any[]; status?: any };
 
       // Sort by 24h change to get gainers and losers
-      const sortedByChange = (data.data as any[]).sort((a: any, b: any) =>
+      const sortedByChange = (data.data || []).sort((a: any, b: any) =>
         b.quote.USD.percent_change_24h - a.quote.USD.percent_change_24h
       );
 
@@ -206,12 +207,13 @@ export class CoinMarketCapService {
         throw new Error(`CMC API error: ${response.status}`);
       }
 
-      const data = await response.json() as any;
+      const result = await response.json();
+      const data = result as { data?: Record<string, any> };
       const quotes: Record<string, QuoteData> = {};
 
       // Transform to our format
       for (const symbol of symbolBatch) {
-        if (data.data?.[symbol]) {
+        if (data.data && data.data[symbol]) {
           quotes[symbol] = data.data[symbol];
         }
       }
@@ -262,22 +264,26 @@ export class CoinMarketCapService {
         throw new Error(`CMC API error: ${response.status}`);
       }
 
-      const data = await response.json() as any;
+      const result = await response.json();
+      const data = result as { data?: any };
+      const d = (data.data || {}) as any;
+      const quote = (d.quote?.USD || {}) as any;
+      
       const metrics: GlobalMarketData = {
-        active_cryptocurrencies: data.data?.active_cryptocurrencies,
-        total_cryptocurrencies: data.data?.total_cryptocurrencies,
-        active_market_pairs: data.data?.active_market_pairs,
-        active_exchanges: data.data?.active_exchanges,
-        total_exchanges: data.data?.total_exchanges,
-        eth_dominance: data.data?.eth_dominance,
-        btc_dominance: data.data?.btc_dominance,
-        defi_volume_24h: data.data?.defi_volume_24h,
-        defi_market_cap: data.data?.defi_market_cap,
-        stablecoin_volume_24h: data.data?.stablecoin_volume_24h,
-        stablecoin_market_cap: data.data?.stablecoin_market_cap,
-        total_market_cap: data.data?.quote?.USD?.total_market_cap,
-        total_volume_24h: data.data?.quote?.USD?.total_volume_24h,
-        last_updated: data.data?.last_updated
+        active_cryptocurrencies: d.active_cryptocurrencies || 0,
+        total_cryptocurrencies: d.total_cryptocurrencies || 0,
+        active_market_pairs: d.active_market_pairs || 0,
+        active_exchanges: d.active_exchanges || 0,
+        total_exchanges: d.total_exchanges || 0,
+        eth_dominance: d.eth_dominance || 0,
+        btc_dominance: d.btc_dominance || 0,
+        defi_volume_24h: d.defi_volume_24h || 0,
+        defi_market_cap: d.defi_market_cap || 0,
+        stablecoin_volume_24h: d.stablecoin_volume_24h || 0,
+        stablecoin_market_cap: d.stablecoin_market_cap || 0,
+        total_market_cap: quote.total_market_cap || 0,
+        total_volume_24h: quote.total_volume_24h || 0,
+        last_updated: d.last_updated || new Date().toISOString()
       };
 
       // Cache for 30 minutes
