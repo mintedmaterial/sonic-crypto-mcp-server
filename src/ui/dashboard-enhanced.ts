@@ -663,8 +663,15 @@ export function getEnhancedDashboardHTML(): string {
       <div class="header-title">
         <h1>🚀 Sonic Crypto Intelligence</h1>
         <p class="header-subtitle">Real-time market data powered by AI</p>
+        <a href="https://paintswap.finance/marketplace/collections/0x45bc8a938e487fde4f31a7e051c2b63627f6f966"
+           target="_blank"
+           style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: linear-gradient(135deg, #f97316, #3b82f6); border-radius: 8px; color: white; text-decoration: none; font-weight: 600; font-size: 0.875rem; margin-top: 0.5rem; transition: all 0.2s;"
+           onmouseover="this.style.transform='scale(1.05)'"
+           onmouseout="this.style.transform='scale(1)'">
+          🎨 Bandit Kidz NFTs
+        </a>
       </div>
-      
+
       <div class="header-stats" id="global-stats">
         <div class="stat-item">
           <div class="stat-label">Total Market Cap</div>
