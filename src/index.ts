@@ -247,9 +247,10 @@ ${context ? `\nContext: ${context}` : ''}`;
       // DexScreener Search
       if (path === '/api/dexscreener/search') {
         try {
-          const { query } = request.method === 'POST' 
-            ? await request.json() 
+          const body = request.method === 'POST' 
+            ? await request.json() as { query?: string }
             : { query: url.searchParams.get('q') || 'sonic' };
+          const query = body.query || 'sonic';
           const dex = new (await import('./services/dexscreener')).DexScreenerService(env);
           const pairs = await dex.searchPairs(query);
           return new Response(JSON.stringify({ success: true, data: pairs }), {
@@ -266,9 +267,10 @@ ${context ? `\nContext: ${context}` : ''}`;
       // DexScreener Sonic Prices
       if (path === '/api/dexscreener/sonic') {
         try {
-          const { symbols } = request.method === 'POST'
-            ? await request.json()
+          const body = request.method === 'POST'
+            ? await request.json() as { symbols?: string[] }
             : { symbols: ['SONIC', 'S', 'USDC'] };
+          const symbols = body.symbols || ['SONIC', 'S', 'USDC'];
           const dex = new (await import('./services/dexscreener')).DexScreenerService(env);
           const prices = await dex.getSonicPrices(symbols);
           return new Response(JSON.stringify({ success: true, data: prices }), {
