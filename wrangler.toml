@@ -35,9 +35,10 @@ DRPC_HTTP_URL = "https://lb.drpc.org/sonic/"
 binding = "AI"
 
 # Static Assets for React Dashboard
-[assets]
-directory = "./sonic-crypto-dashboard/out"
-binding = "ASSETS"
+# Commented out until React dashboard is built
+# [assets]
+# directory = "./sonic-crypto-dashboard/out"
+# binding = "ASSETS"
 
 # Note: AI Gateway configuration will be set up separately
 

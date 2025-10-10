@@ -4,8 +4,8 @@ export interface Env {
   // AI Bindings
   AI: Ai;
 
-  // Static Assets for React Dashboard
-  ASSETS: Fetcher;
+  // Static Assets for React Dashboard (optional - only when React app is built)
+  ASSETS?: Fetcher;
 
   // KV Namespaces
   SONIC_CACHE: KVNamespace;
