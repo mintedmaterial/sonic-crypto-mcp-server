@@ -4,6 +4,9 @@ export interface Env {
   // AI Bindings
   AI: Ai;
 
+  // Static Assets for React Dashboard
+  ASSETS: Fetcher;
+
   // KV Namespaces
   SONIC_CACHE: KVNamespace;
   API_RATE_LIMIT: KVNamespace;
@@ -15,6 +18,7 @@ export interface Env {
   // R2 Buckets
   HISTORICAL_DATA: R2Bucket;
   MARKET_REPORTS: R2Bucket;
+  FINANCIAL_PDF_KNOWLEDGE: R2Bucket;
 
   // D1 Database
   CONFIG_DB: D1Database;

@@ -45,7 +45,38 @@ export default {
     }
 
     try {
-      // ===== Root path - Enhanced Dashboard UI =====
+      // ===== Static Assets (React Dashboard) =====
+      // Try to serve from static assets binding if available
+      if (env.ASSETS && !path.startsWith('/api/') && !path.startsWith('/mcp/') && !path.startsWith('/health')) {
+        try {
+          const assetResponse = await env.ASSETS.fetch(request);
+
+          // If asset found, return it
+          if (assetResponse.status === 200) {
+            return new Response(assetResponse.body, {
+              headers: { ...corsHeaders, ...Object.fromEntries(assetResponse.headers) }
+            });
+          }
+
+          // If 404 and path is /, fall through to dashboard HTML
+          if (assetResponse.status === 404 && path === '/') {
+            // Fall through to enhanced dashboard below
+          } else if (assetResponse.status === 404) {
+            // For SPA routing, serve index.html for non-API routes
+            const indexResponse = await env.ASSETS.fetch(new Request(new URL('/', request.url)));
+            if (indexResponse.status === 200) {
+              return new Response(indexResponse.body, {
+                headers: { ...corsHeaders, ...Object.fromEntries(indexResponse.headers) }
+              });
+            }
+          }
+        } catch (assetError) {
+          console.warn('Asset fetch error:', assetError);
+          // Fall through to dashboard HTML
+        }
+      }
+
+      // ===== Root path - Enhanced Dashboard UI (Fallback) =====
       if (path === '/') {
         return new Response(getEnhancedDashboardHTML(), {
           headers: { ...corsHeaders, 'Content-Type': 'text/html' }
