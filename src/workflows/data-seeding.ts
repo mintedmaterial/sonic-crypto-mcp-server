@@ -26,16 +26,19 @@ export const DEFAULT_SEEDING_CONFIG: SeedingConfig = {
  * Initialize D1 database schema
  */
 export async function initializeD1Schema(env: Env): Promise<void> {
-  // Create tables for metadata and configuration
-  await env.CONFIG_DB.exec(`
+  // Create instruments table
+  await env.CONFIG_DB.prepare(`
     CREATE TABLE IF NOT EXISTS instruments (
       symbol TEXT PRIMARY KEY,
       name TEXT,
       market TEXT,
       last_updated TIMESTAMP,
       metadata TEXT
-    );
+    )
+  `).run();
 
+  // Create price_snapshots table
+  await env.CONFIG_DB.prepare(`
     CREATE TABLE IF NOT EXISTS price_snapshots (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       instrument TEXT,
@@ -45,8 +48,11 @@ export async function initializeD1Schema(env: Env): Promise<void> {
       volume REAL,
       timestamp TIMESTAMP,
       FOREIGN KEY (instrument) REFERENCES instruments(symbol)
-    );
+    )
+  `).run();
 
+  // Create data_fetch_log table
+  await env.CONFIG_DB.prepare(`
     CREATE TABLE IF NOT EXISTS data_fetch_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       data_type TEXT,
@@ -56,13 +62,19 @@ export async function initializeD1Schema(env: Env): Promise<void> {
       records_fetched INTEGER,
       error_message TEXT,
       fetch_timestamp TIMESTAMP
-    );
+    )
+  `).run();
 
+  // Create indexes
+  await env.CONFIG_DB.prepare(`
     CREATE INDEX IF NOT EXISTS idx_price_snapshots_timestamp
-      ON price_snapshots(timestamp);
+      ON price_snapshots(timestamp)
+  `).run();
+
+  await env.CONFIG_DB.prepare(`
     CREATE INDEX IF NOT EXISTS idx_price_snapshots_instrument
-      ON price_snapshots(instrument);
-  `);
+      ON price_snapshots(instrument)
+  `).run();
 }
 
 /**
