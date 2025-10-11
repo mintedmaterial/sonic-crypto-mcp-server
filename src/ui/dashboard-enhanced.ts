@@ -1283,36 +1283,7 @@ export function getEnhancedDashboardHTML(): string {
         losersEl.innerHTML = '<div class="error-message">Failed to load trending data</div>';
       }
     }
-                <div class="trending-price">$\${token.price.toFixed(token.price < 1 ? 6 : 2)}</div>
-                <div class="trending-change price-change positive">+\${token.percent_change_24h.toFixed(2)}%</div>
-              </div>
-            </div>
-          \`).join('');
-          
-          // Render losers
-          losersEl.innerHTML = data.data.losers.slice(0, 5).map((token, i) => \`
-            <div class="trending-item">
-              <div class="trending-rank">\${i + 1}</div>
-              <div class="trending-info">
-                <div class="trending-symbol">\${token.symbol}</div>
-                <div class="trending-name">\${token.name}</div>
-              </div>
-              <div class="trending-stats">
-                <div class="trending-price">$\${token.price.toFixed(token.price < 1 ? 6 : 2)}</div>
-                <div class="trending-change price-change negative">\${token.percent_change_24h.toFixed(2)}%</div>
-              </div>
-            </div>
-          \`).join('');
-          
-          // Update heatmap
-          updateHeatmap(data.data.gainers.concat(data.data.losers));
-        }
-      } catch (error) {
-        gainersEl.innerHTML = '<div class="error-message">Failed to load trending data</div>';
-        losersEl.innerHTML = '<div class="error-message">Failed to load trending data</div>';
-      }
-    }
-    
+
     function updateHeatmap(tokens) {
       const heatmapEl = document.getElementById('market-heatmap');
       
