@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 
 # Worker configuration
 [env.production]
-name = "sonic-crypto-mcp-server"
+name = "sonic-crypto-mcp-server-prod"
 
 [env.staging]
 name = "sonic-crypto-mcp-server-staging"
