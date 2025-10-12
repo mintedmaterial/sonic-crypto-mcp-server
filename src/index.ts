@@ -19,6 +19,7 @@ export { CryptoDataCache, MCPSessionManager };
 
 // Export Durable Objects - AI Agents
 export { OverviewAgent } from './agents/overview-agent';
+export { ChartsAgent, ChartsContainer } from './agents/charts-agent';
 
 // Export Workflows
 export { DataUpdateWorkflow, DataSeedingWorkflow };

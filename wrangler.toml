@@ -18,6 +18,7 @@ API_VERSION = "1.0.0"
 ENVIRONMENT = "production"
 MCP_SERVER_NAME = "sonic-crypto-mcp"
 MCP_SERVER_VERSION = "1.0.0"
+MAX_CHART_CONTAINERS = "10"
 
 # Discord Channel IDs
 NFT_DISCORD_CHANNEL_ID = "1333603176762576966"
@@ -70,11 +71,11 @@ class_name = "MCPSessionManager"
 name = "OVERVIEW_AGENT"
 class_name = "OverviewAgent"
 
-# TODO: Implement remaining agents (Issues #4-#7)
-# [[durable_objects.bindings]]
-# name = "CHARTS_AGENT"
-# class_name = "ChartsAgent"
+[[durable_objects.bindings]]
+name = "CHARTS_AGENT"
+class_name = "ChartsAgent"
 
+# TODO: Implement remaining agents (Issues #5-#7)
 # [[durable_objects.bindings]]
 # name = "TRADING_AGENT"
 # class_name = "TradingAgent"
@@ -86,6 +87,14 @@ class_name = "OverviewAgent"
 # [[durable_objects.bindings]]
 # name = "CHAT_AGENT"
 # class_name = "ChatAgent"
+
+# Cloudflare Container for Charts Agent (Python ML)
+[[containers]]
+class_name = "ChartsContainer"
+image = "./ChartsAgentDockerfile"
+max_instances = 10
+instance_type = { vcpu = 4, memory_mib = 4096, disk_mb = 6144 }
+rollout_step_percentage = 100
 
 # KV Namespaces for caching and session management
 [[kv_namespaces]]
@@ -169,7 +178,11 @@ new_classes = [ "CryptoDataCache", "MCPSessionManager" ]
 [[migrations]]
 tag = "v2"
 new_classes = [ "OverviewAgent" ]
-# TODO: Add remaining agents when implemented: ChartsAgent, TradingAgent, IntelligenceAgent, ChatAgent
+
+[[migrations]]
+tag = "v3"
+new_classes = [ "ChartsAgent", "ChartsContainer" ]
+# TODO: Add remaining agents when implemented: TradingAgent, IntelligenceAgent, ChatAgent
 
 # Cron triggers for automated operations
 [triggers]

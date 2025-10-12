@@ -1,0 +1,70 @@
+# Charts Agent Container - Python-based Technical Analysis Service
+# Based on Cloudflare Sandbox image with Python ML stack
+
+FROM docker.io/cloudflare/sandbox:0.1.3
+
+# Install system dependencies and Python ML libraries
+ARG TARGETARCH
+RUN apt-get update && \
+    apt-get install -y \
+        git \
+        ca-certificates \
+        curl \
+        procps \
+        net-tools \
+        python3 \
+        python3-pip \
+        python3-dev \
+        build-essential \
+        libta-lib0 \
+        libta-lib-dev \
+        ta-lib \
+        wget && \
+    update-ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Python data science and ML packages
+RUN pip3 install --no-cache-dir \
+    pandas==2.1.4 \
+    numpy==1.26.2 \
+    ta-lib==0.4.28 \
+    plotly==5.18.0 \
+    matplotlib==3.8.2 \
+    scikit-learn==1.3.2 \
+    scipy==1.11.4 \
+    requests==2.31.0 \
+    websockets==12.0 \
+    fastapi==0.109.0 \
+    uvicorn==0.27.0 \
+    pydantic==2.5.3 \
+    aiohttp==3.9.1
+
+# Create directories for chart analysis service
+RUN mkdir -p /app/charts-agent /app/data/charts /app/data/cache
+
+# Copy the Python chart analysis service
+COPY charts-agent/ /app/charts-agent/
+
+# Install Node.js dependencies for TypeScript runner
+WORKDIR /app/charts-agent
+RUN if [ -f "package.json" ]; then bun install; fi
+
+# Make CLI tools executable
+RUN if [ -f "cli-tools.ts" ]; then chmod +x cli-tools.ts; fi
+
+# Set proper permissions
+RUN chmod -R 755 /app/data
+
+# Environment variables
+ENV CONTAINER_ENV=docker
+ENV PYTHONUNBUFFERED=1
+ENV CHARTS_AGENT_PORT=3001
+
+# Expose port for chart service
+EXPOSE 3001
+
+# Set working directory back to /app
+WORKDIR /app
+
+# Start the chart analysis service
+CMD ["bun", "charts-agent/index.ts"]

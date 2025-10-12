@@ -25,6 +25,9 @@ export interface Env {
   INTELLIGENCE_AGENT: DurableObjectNamespace;
   CHAT_AGENT: DurableObjectNamespace;
 
+  // Cloudflare Containers
+  CHARTS_CONTAINER: DurableObjectNamespace; // Python ML container for technical analysis
+
   // R2 Buckets
   HISTORICAL_DATA: R2Bucket;
   MARKET_REPORTS: R2Bucket;
@@ -66,6 +69,7 @@ export interface Env {
   BANDIT_KIDZ_CONTRACT: string;
   PAINTSWAP_COLLECTION_URL: string;
   DRPC_HTTP_URL: string;
+  MAX_CHART_CONTAINERS?: string; // Maximum Charts Agent container instances
 }
 
 export const CACHE_TTL = {
