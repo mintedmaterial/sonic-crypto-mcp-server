@@ -25,8 +25,8 @@ export interface Env {
   INTELLIGENCE_AGENT: DurableObjectNamespace;
   CHAT_AGENT: DurableObjectNamespace;
 
-  // Cloudflare Containers
-  CHARTS_CONTAINER: DurableObjectNamespace; // Python ML container for technical analysis
+  // Cloudflare Containers (when available)
+  CHARTS_CONTAINER?: DurableObjectNamespace; // Python ML container for technical analysis (optional)
 
   // R2 Buckets
   HISTORICAL_DATA: R2Bucket;

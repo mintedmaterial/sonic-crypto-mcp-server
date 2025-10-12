@@ -89,12 +89,14 @@ class_name = "ChartsAgent"
 # class_name = "ChatAgent"
 
 # Cloudflare Container for Charts Agent (Python ML)
-[[containers]]
-class_name = "ChartsContainer"
-image = "./ChartsAgentDockerfile"
-max_instances = 10
-instance_type = { vcpu = 4, memory_mib = 4096, disk_mb = 6144 }
-rollout_step_percentage = 100
+# TODO: Containers are not yet available in all Cloudflare accounts
+# When available, uncomment and configure:
+# [[containers]]
+# name = "CHARTS_CONTAINER"
+# image = "./ChartsAgentDockerfile"
+# max_instances = 10
+# instance_type = { vcpu = 4, memory_mib = 4096, disk_mb = 6144 }
+# rollout_step_percentage = 100
 
 # KV Namespaces for caching and session management
 [[kv_namespaces]]
@@ -181,7 +183,7 @@ new_classes = [ "OverviewAgent" ]
 
 [[migrations]]
 tag = "v3"
-new_classes = [ "ChartsAgent", "ChartsContainer" ]
+new_classes = [ "ChartsAgent" ]
 # TODO: Add remaining agents when implemented: TradingAgent, IntelligenceAgent, ChatAgent
 
 # Cron triggers for automated operations

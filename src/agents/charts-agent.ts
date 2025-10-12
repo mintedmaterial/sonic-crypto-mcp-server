@@ -108,11 +108,14 @@ export class ChartsAgent extends BaseAgent {
     this.nftVerification = new NFTVerificationService(this.env);
     this.dexScreener = new DexScreenerEnhancedService(this.env);
 
-    // Get container stub
-    this.containerStub = this.getContainerStub(params.sessionId);
-
-    // Check container health
-    await this.checkContainerHealth();
+    // Get container stub (if available)
+    if (this.env.CHARTS_CONTAINER) {
+      this.containerStub = this.getContainerStub(params.sessionId);
+      await this.checkContainerHealth();
+    } else {
+      console.log('[ChartsAgent] Python container not available - using Worker AI fallback');
+      this.containerHealthy = false;
+    }
 
     console.log('[ChartsAgent] Initialized', {
       agentId: params.agentId,
@@ -125,32 +128,21 @@ export class ChartsAgent extends BaseAgent {
 
   /**
    * Get or create container stub for this session
+   * TODO: Implement when Cloudflare Containers are available
    */
   private getContainerStub(sessionId: string): ContainerStub {
-    // Use consistent hashing to assign sessions to containers
-    // Similar to VibeSDK's getAutoAllocatedSandbox
-    const maxInstances = parseInt(this.env.MAX_CHART_CONTAINERS || '10');
+    // Placeholder - Containers not yet available
+    // For now, return a mock stub that will trigger Python analysis via Worker AI
+    console.log('[ChartsAgent] Container allocation (mock)', { sessionId });
 
-    let hash = 0;
-    for (let i = 0; i < sessionId.length; i++) {
-      const char = sessionId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    hash = Math.abs(hash);
-
-    const containerIndex = hash % maxInstances;
-    const containerId = `charts-container-${containerIndex}`;
-
-    console.log('[ChartsAgent] Container allocation', {
-      sessionId,
-      containerId,
-      containerIndex,
-    });
-
-    // Get Durable Object stub for the container
-    const id = this.env.CHARTS_CONTAINER.idFromName(containerId);
-    return this.env.CHARTS_CONTAINER.get(id) as any;
+    return {
+      fetch: async (request: Request) => {
+        // Mock response - actual Python analysis will be added when containers are available
+        return new Response(JSON.stringify({
+          error: 'Python ML container not yet available - using Worker AI fallback'
+        }), { status: 501 });
+      }
+    };
   }
 
   /**
