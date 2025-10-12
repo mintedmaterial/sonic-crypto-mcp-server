@@ -24,6 +24,22 @@
 - **Scheduled Jobs** - Automated data refresh via cron triggers
 - **Type-Safe** - Strict TypeScript with comprehensive type definitions
 
+### 🎯 NEW: Advanced Features
+
+#### Workers for Platforms 🚀
+- **User-Specific Worker Instances** - Isolated execution environments per user
+- **NFT-Gated Access** - Bandit Kidz NFT holders get premium features
+- **Dispatch Namespace**: `sonic-user-workers` (shared with Vibe SDK)
+- **Cross-Platform Integration** - Seamless integration with Vibe SDK applications
+- **Auto Lifecycle Management** - Automatic worker creation, routing, and cleanup
+
+#### Python ML Containers 🐍 (Coming Soon)
+- **Advanced Technical Analysis** - 50+ indicators via TA-Lib
+- **Pattern Recognition** - AI-powered candlestick and chart patterns
+- **Machine Learning** - scikit-learn models for trend prediction
+- **Chart Generation** - plotly/matplotlib visualizations
+- **See [CONTAINERS.md](./CONTAINERS.md) for activation guide**
+
 ## 🏗️ Architecture
 
 ```
@@ -128,6 +144,15 @@ npm run tail
 - **`GET|POST /api/news`** - Search crypto news
 - **`POST /api/chat`** - AI chat assistant with context-aware responses
 
+### User Worker Management (Workers for Platforms)
+- **`POST /api/user-worker/create`** - Create or get user-specific worker (NFT-gated)
+- **`POST /api/user-worker/dispatch`** - Dispatch request to user worker
+- **`POST /api/user-worker/update-nft`** - Update user worker NFT status
+- **`GET /api/user-worker/stats`** - Get worker statistics (monitoring)
+- **`GET /api/user-worker/list`** - List all user workers (admin)
+- **`POST /api/user-worker/delete`** - Delete user worker (cleanup)
+- **`POST /api/verify-nft`** - Verify Bandit Kidz NFT ownership
+
 ### Data Management
 - **`POST /api/init-db`** - Initialize D1 database schema
 - **`POST /api/seed-data`** - Seed historical data (accepts config JSON)
@@ -202,9 +227,11 @@ Fetch minute-level data for high-frequency analysis.
 - **D1 Database**: `CONFIG_DB` (for metadata and configuration)
 
 ### Compute
-- **Durable Objects**: `CryptoDataCache`, `MCPSessionManager`
+- **Durable Objects**: `CryptoDataCache`, `MCPSessionManager`, `OverviewAgent`, `ChartsAgent`
 - **Workflows**: `DATA_UPDATE_WORKFLOW`, `DATA_SEEDING_WORKFLOW`
 - **Queue**: `CRYPTO_QUEUE` (for background processing)
+- **Dispatch Namespace**: `sonic-user-workers` (Workers for Platforms)
+- **Containers**: `CHARTS_CONTAINER` (Python ML - when available)
 
 ### AI & Analytics
 - **Workers AI**: Llama 3.1-8b, Hermes-2-Pro-Mistral-7B
