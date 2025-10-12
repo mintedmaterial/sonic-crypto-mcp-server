@@ -611,6 +611,202 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
         }
       }
 
+      // ===== Workers for Platforms - User Worker Management =====
+
+      // Create or get user worker
+      if (path === '/api/user-worker/create' && request.method === 'POST') {
+        try {
+          const { userId, userAddress } = await request.json() as any;
+
+          if (!userId || !userAddress) {
+            return new Response(JSON.stringify({
+              error: 'userId and userAddress required'
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+
+          const { UserWorkerManager } = await import('./services/user-worker-manager');
+          const manager = new UserWorkerManager(env);
+
+          const config = await manager.getOrCreateUserWorker(userId, userAddress);
+
+          return new Response(JSON.stringify({
+            success: true,
+            data: config
+          }, null, 2), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: error.message
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Dispatch request to user worker
+      if (path === '/api/user-worker/dispatch' && request.method === 'POST') {
+        try {
+          const { userId, path: workerPath, method, body } = await request.json() as any;
+
+          if (!userId || !workerPath) {
+            return new Response(JSON.stringify({
+              error: 'userId and path required'
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+
+          const { UserWorkerManager } = await import('./services/user-worker-manager');
+          const manager = new UserWorkerManager(env);
+
+          const response = await manager.dispatchToUserWorker(userId, workerPath, {
+            method: method || 'GET',
+            body: body ? JSON.stringify(body) : undefined
+          });
+
+          // Return the response from user worker
+          return response;
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: error.message
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Update user worker NFT status
+      if (path === '/api/user-worker/update-nft' && request.method === 'POST') {
+        try {
+          const { userId, userAddress } = await request.json() as any;
+
+          if (!userId || !userAddress) {
+            return new Response(JSON.stringify({
+              error: 'userId and userAddress required'
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+
+          const { UserWorkerManager } = await import('./services/user-worker-manager');
+          const manager = new UserWorkerManager(env);
+
+          const config = await manager.updateWorkerNFTStatus(userId, userAddress);
+
+          return new Response(JSON.stringify({
+            success: true,
+            data: config
+          }, null, 2), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: error.message
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Get worker stats (monitoring)
+      if (path === '/api/user-worker/stats') {
+        try {
+          const { UserWorkerManager } = await import('./services/user-worker-manager');
+          const manager = new UserWorkerManager(env);
+
+          const stats = await manager.getWorkerStats();
+
+          return new Response(JSON.stringify({
+            success: true,
+            data: stats
+          }, null, 2), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: error.message
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // List user workers (admin)
+      if (path === '/api/user-worker/list') {
+        try {
+          const limit = parseInt(url.searchParams.get('limit') || '100');
+
+          const { UserWorkerManager } = await import('./services/user-worker-manager');
+          const manager = new UserWorkerManager(env);
+
+          const workers = await manager.listUserWorkers(limit);
+
+          return new Response(JSON.stringify({
+            success: true,
+            data: workers,
+            count: workers.length
+          }, null, 2), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: error.message
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Delete user worker
+      if (path === '/api/user-worker/delete' && request.method === 'POST') {
+        try {
+          const { userId } = await request.json() as any;
+
+          if (!userId) {
+            return new Response(JSON.stringify({ error: 'userId required' }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+
+          const { UserWorkerManager } = await import('./services/user-worker-manager');
+          const manager = new UserWorkerManager(env);
+
+          await manager.deleteUserWorker(userId);
+
+          return new Response(JSON.stringify({
+            success: true,
+            message: 'User worker deleted successfully'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: error.message
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
       // ===== Data Management Endpoints =====
 
       // Initialize database
@@ -718,6 +914,13 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
             "/api/orderly/ticker/{symbol}": "Get Orderly DEX ticker for symbol",
             "/api/dexscreener/search": "Search DexScreener pairs",
             "/api/dexscreener/sonic": "Get Sonic chain token prices from DexScreener",
+            "/api/user-worker/create": "Create or get user-specific worker (POST, NFT-gated)",
+            "/api/user-worker/dispatch": "Dispatch request to user worker (POST)",
+            "/api/user-worker/update-nft": "Update user worker NFT status (POST)",
+            "/api/user-worker/stats": "Get user worker statistics (monitoring)",
+            "/api/user-worker/list": "List all user workers (admin)",
+            "/api/user-worker/delete": "Delete user worker (POST)",
+            "/api/verify-nft": "Verify Bandit Kidz NFT ownership (POST)",
             "/api/seed-data": "Seed historical data (POST)",
             "/api/refresh-data": "Refresh recent data (POST)",
             "/api/init-db": "Initialize database schema (POST)",

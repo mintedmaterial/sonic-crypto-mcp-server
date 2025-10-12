@@ -22,6 +22,24 @@ This is a **Sonic Crypto MCP Server** - an advanced Model Context Protocol serve
 - **Analytics Integration**: Real-time usage tracking with Analytics Engine
 - **Queue Processing**: Background crypto data processing with Queues
 - **Session Management**: Persistent MCP session handling
+- **Workers for Platforms**: User-specific worker instances with NFT-gated access (dispatch namespace: sonic-user-workers)
+- **NFT Gating**: Bandit Kidz NFT holders get premium features and isolated worker instances
+
+### Workers for Platforms Integration
+
+- **Dispatch Namespace**: `sonic-user-workers` - Shared with Vibe SDK for cross-platform experiences
+- **User Worker Manager** (`src/services/user-worker-manager.ts`): Manages user-specific worker instances
+- **NFT-Gated Access**: Each Bandit Kidz NFT holder gets isolated worker with personalized agents
+- **Worker Lifecycle**: Automatic creation, routing, and cleanup of user workers
+- **Cross-Platform**: Namespace shared between Sonic MCP Server and Vibe SDK applications
+
+#### User Worker Endpoints
+- `POST /api/user-worker/create` - Create or get user-specific worker (requires userId, userAddress)
+- `POST /api/user-worker/dispatch` - Dispatch request to user worker (requires userId, path)
+- `POST /api/user-worker/update-nft` - Update user worker NFT status
+- `GET /api/user-worker/stats` - Get worker statistics (monitoring)
+- `GET /api/user-worker/list` - List all user workers (admin)
+- `POST /api/user-worker/delete` - Delete user worker (cleanup)
 
 ### Data Sources & APIs
 

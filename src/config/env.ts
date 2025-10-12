@@ -28,6 +28,9 @@ export interface Env {
   // Cloudflare Containers (when available)
   CHARTS_CONTAINER?: DurableObjectNamespace; // Python ML container for technical analysis (optional)
 
+  // Workers for Platforms - User-specific worker instances
+  DISPATCHER: DispatchNamespace;
+
   // R2 Buckets
   HISTORICAL_DATA: R2Bucket;
   MARKET_REPORTS: R2Bucket;

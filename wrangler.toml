@@ -139,6 +139,14 @@ zone_name = "srvcflo.com"
 [observability.logs]
 enabled = true
 
+# Workers for Platforms - User-specific worker instances
+# Each NFT holder gets isolated worker with personalized agents
+# Shared with Vibe SDK for cross-platform user experiences
+[[dispatch_namespaces]]
+binding = "DISPATCHER"
+namespace = "sonic-user-workers"
+outbound = { service = "sonic-crypto-mcp-server", parameters = ["env"] }
+
 # Workflows configuration - Data Management
 [[workflows]]
 binding = "DATA_UPDATE_WORKFLOW"
