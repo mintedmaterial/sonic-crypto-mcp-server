@@ -1,7 +1,8 @@
-/* Sonic Crypto Intelligence App - Shared Styles with SonicGenie */
+/* Sonic Crypto Intelligence App - Aligned with VibeSDK Structure */
 /* Based on C:\Users\PC\Desktop\SonicGenie\s3vcflo-vibesdk-production\src\index.css */
 
 @import 'tailwindcss';
+@import "tw-animate-css";
 
 @font-face {
   font-family: "departureMono";
@@ -31,13 +32,19 @@
   .chat-edge-throb { animation: none; }
 }
 
-/* Glow animations for dark mode - Sonic theme */
+/* Glow animations for dark mode - Sonic theme with multi-color cycle */
 @keyframes glow-shift-sonic {
   0%, 100% {
     filter: drop-shadow(0 0 8px rgba(31, 115, 183, 0.3)) drop-shadow(0 0 16px rgba(31, 115, 183, 0.15));
   }
+  25% {
+    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.3)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.15));
+  }
   50% {
     filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.3)) drop-shadow(0 0 16px rgba(0, 255, 255, 0.15));
+  }
+  75% {
+    filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.3)) drop-shadow(0 0 16px rgba(236, 72, 153, 0.15));
   }
 }
 
@@ -45,8 +52,14 @@
   0%, 100% {
     box-shadow: 0 0 12px rgba(31, 115, 183, 0.2), 0 0 24px rgba(31, 115, 183, 0.1), inset 0 0 12px rgba(31, 115, 183, 0.05);
   }
+  25% {
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.2), 0 0 24px rgba(168, 85, 247, 0.1), inset 0 0 12px rgba(168, 85, 247, 0.05);
+  }
   50% {
     box-shadow: 0 0 12px rgba(0, 255, 255, 0.2), 0 0 24px rgba(0, 255, 255, 0.1), inset 0 0 12px rgba(0, 255, 255, 0.05);
+  }
+  75% {
+    box-shadow: 0 0 12px rgba(236, 72, 153, 0.2), 0 0 24px rgba(236, 72, 153, 0.1), inset 0 0 12px rgba(236, 72, 153, 0.05);
   }
 }
 
@@ -54,8 +67,14 @@
   0%, 100% {
     box-shadow: 0 0 8px rgba(31, 115, 183, 0.4), 0 0 16px rgba(31, 115, 183, 0.2);
   }
+  25% {
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.4), 0 0 16px rgba(168, 85, 247, 0.2);
+  }
   50% {
     box-shadow: 0 0 8px rgba(0, 255, 255, 0.4), 0 0 16px rgba(0, 255, 255, 0.2);
+  }
+  75% {
+    box-shadow: 0 0 8px rgba(236, 72, 153, 0.4), 0 0 16px rgba(236, 72, 153, 0.2);
   }
 }
 
@@ -66,7 +85,7 @@
 
 .dark .text-glow-sonic {
   color: #ffffff;
-  animation: glow-shift-sonic 6s ease-in-out infinite;
+  animation: glow-shift-sonic 8s ease-in-out infinite;
 }
 
 .line-glow-sonic {
@@ -76,7 +95,7 @@
 
 .dark .line-glow-sonic {
   border: 1px solid rgba(57, 57, 57, 0.5);
-  animation: border-glow-shift-sonic 6s ease-in-out infinite;
+  animation: border-glow-shift-sonic 8s ease-in-out infinite;
 }
 
 .button-glow-sonic {
@@ -84,10 +103,11 @@
 }
 
 .dark .button-glow-sonic {
-  animation: button-glow-shift-sonic 6s ease-in-out infinite;
+  animation: button-glow-shift-sonic 8s ease-in-out infinite;
 }
 
 @custom-variant dark (&:is(.dark *));
+@plugin '@tailwindcss/typography';
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -120,6 +140,9 @@
   --color-text-primary: var(--build-chat-colors-text-primary);
   --color-text-secondary: var(--build-chat-colors-text-secondary);
   --color-text-tertiary: var(--build-chat-colors-text-tertiary);
+
+  --animate-typing-dot: typing-dot 1.2s ease-in-out infinite;
+  --animate-shake: shake 1s ease-in-out;
 }
 
 :root {
@@ -228,7 +251,17 @@
     3px 3px 13px 0px rgba(0, 0, 0, 0.04), 24px 24px 24px 0px rgba(0, 0, 0, 0.03);
 }
 
-/* Scrollbars - consistent with SonicGenie */
+/* Monaco editor positioning hack */
+.monaco-editor {
+  position: absolute !important;
+}
+
+/* Decorative graph paper background */
+@utility bg-graph-paper {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Scrollbars - consistent with VibeSDK */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -257,6 +290,95 @@
   background-color: transparent;
 }
 
+/* Phase Timeline Custom Scrollbar */
+.phase-timeline-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.phase-timeline-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.phase-timeline-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.phase-timeline-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.dark .phase-timeline-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark .phase-timeline-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark .phase-timeline-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Chat messages custom scrollbar */
+.chat-messages-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-messages-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.chat-messages-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.dark .chat-messages-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dark .chat-messages-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Terminal custom scrollbar */
+.terminal-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.terminal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.terminal-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.dark .terminal-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark .terminal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dark .terminal-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 /* Hide scrollbar but keep scroll behavior */
 .no-scrollbar {
   -ms-overflow-style: none;
@@ -266,6 +388,24 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Link styling */
+.a-tag a {
+  @apply text-brand;
+}
+
+/* Prose typography */
+.prose {
+  --tw-prose-th-headers: --value(var(--color-text));
+  --tw-prose-body: --value(var(--color-text));
+  --tw-prose-headings: --value(var(--color-text));
+  --tw-prose-code: --value(var(--color-text));
+  --tw-prose-bold: --value(var(--color-text));
+  --tw-prose-quotes: --value(var(--color-text));
+  --tw-prose-counters: --value(var(--color-text));
+}
+
+/* ===== Sonic-Specific Features (Preserved) ===== */
 
 /* Agent activity indicators */
 @keyframes agent-pulse {
