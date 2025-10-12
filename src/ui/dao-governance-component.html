@@ -1,0 +1,638 @@
+<!-- DAO Governance Component -->
+<!-- NFT-gated feature proposals for srvcflo.com ecosystem -->
+
+<style>
+  .dao-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .dao-header {
+    background: linear-gradient(135deg, #1f73b7 0%, #00ffff 100%);
+    padding: 2rem;
+    border-radius: 12px;
+    color: white;
+    margin-bottom: 2rem;
+  }
+
+  .dao-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+  }
+
+  .proposal-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+  }
+
+  .dark .proposal-form {
+    background: #1f2020;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .dark .form-label {
+    color: #fff;
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  .dark .form-input,
+  .dark .form-textarea,
+  .dark .form-select {
+    background: #292929;
+    border-color: #393939;
+    color: #fff;
+  }
+
+  .form-textarea {
+    min-height: 150px;
+    resize: vertical;
+  }
+
+  .tag-input-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    min-height: 50px;
+  }
+
+  .tag {
+    background: #1f73b7;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tag-remove {
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .submit-btn {
+    background: linear-gradient(135deg, #1f73b7 0%, #00ffff 100%);
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .proposals-list {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .proposal-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .dark .proposal-card {
+    background: #1f2020;
+  }
+
+  .proposal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .proposal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+  }
+
+  .proposal-type-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .type-tool_feature { background: #10b981; color: white; }
+  .type-dapp_plugin { background: #3b82f6; color: white; }
+  .type-integration { background: #8b5cf6; color: white; }
+  .type-improvement { background: #f59e0b; color: white; }
+  .type-other { background: #6b7280; color: white; }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .status-draft { background: #e5e5e5; color: #666; }
+  .status-active { background: #dbeafe; color: #1e40af; }
+  .status-voting { background: #fef3c7; color: #92400e; }
+  .status-approved { background: #d1fae5; color: #065f46; }
+  .status-implemented { background: #dcfce7; color: #166534; }
+
+  .proposal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+
+  .dark .proposal-title {
+    color: #fff;
+  }
+
+  .proposal-description {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .dark .proposal-description {
+    color: #cdcaca;
+  }
+
+  .proposal-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: #999;
+    margin-bottom: 1rem;
+  }
+
+  .proposal-reactions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .dark .proposal-reactions {
+    border-color: #393939;
+  }
+
+  .reaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 20px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+  }
+
+  .reaction-btn:hover {
+    background: #f6f6f6;
+    border-color: #1f73b7;
+  }
+
+  .dark .reaction-btn {
+    border-color: #393939;
+  }
+
+  .dark .reaction-btn:hover {
+    background: #292929;
+  }
+
+  .reaction-btn.active {
+    background: #1f73b7;
+    color: white;
+    border-color: #1f73b7;
+  }
+
+  .nft-gate-banner {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #78350f;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e5e5e5;
+  }
+
+  .filter-tab {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .filter-tab.active {
+    color: #1f73b7;
+  }
+
+  .filter-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #1f73b7;
+  }
+</style>
+
+<div class="dao-container">
+  <!-- Header with Stats -->
+  <div class="dao-header">
+    <h1>🏛️ srvcflo DAO Governance</h1>
+    <p>Community-driven feature proposals for the Sonic crypto ecosystem</p>
+    <div class="dao-stats">
+      <div class="stat-card">
+        <div class="stat-value" id="total-proposals">0</div>
+        <div class="stat-label">Total Proposals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="active-proposals">0</div>
+        <div class="stat-label">Active</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="voting-proposals">0</div>
+        <div class="stat-label">In Voting</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="implemented-proposals">0</div>
+        <div class="stat-label">Implemented</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NFT Gate Banner -->
+  <div class="nft-gate-banner" id="nft-banner" style="display:none;">
+    <span>🎫</span>
+    <div>
+      <strong>NFT Holder Detected!</strong>
+      <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem;">You can submit feature proposals and participate in governance.</p>
+    </div>
+  </div>
+
+  <!-- Create Proposal Form (NFT holders only) -->
+  <div class="proposal-form" id="proposal-form" style="display:none;">
+    <h2>Submit Feature Proposal</h2>
+    <form id="new-proposal-form">
+      <div class="form-group">
+        <label class="form-label">Proposal Title *</label>
+        <input type="text" class="form-input" id="proposal-title" required placeholder="e.g., Add real-time WebSocket price feeds">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Type *</label>
+        <select class="form-select" id="proposal-type" required>
+          <option value="tool_feature">Tool/Feature</option>
+          <option value="dapp_plugin">DApp Plugin</option>
+          <option value="integration">Integration</option>
+          <option value="improvement">Improvement</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description *</label>
+        <textarea class="form-textarea" id="proposal-description" required placeholder="Describe your proposal in detail..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Related Agents/Sections</label>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" value="overview"> Overview
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" value="charts"> Charts
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" value="trading"> Trading
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" value="intelligence"> Intelligence
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" value="chat"> Chat
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Estimated Complexity</label>
+        <select class="form-select" id="proposal-complexity">
+          <option value="low">Low - Simple feature or fix</option>
+          <option value="medium">Medium - Moderate development required</option>
+          <option value="high">High - Major feature or integration</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tags (comma-separated)</label>
+        <input type="text" class="form-input" id="proposal-tags" placeholder="e.g., websocket, real-time, performance">
+      </div>
+
+      <button type="submit" class="submit-btn">Submit Proposal</button>
+    </form>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs">
+    <button class="filter-tab active" data-filter="all">All Proposals</button>
+    <button class="filter-tab" data-filter="active">Active</button>
+    <button class="filter-tab" data-filter="voting">In Voting</button>
+    <button class="filter-tab" data-filter="implemented">Implemented</button>
+  </div>
+
+  <!-- Proposals List -->
+  <div class="proposals-list" id="proposals-list">
+    <!-- Proposals will be dynamically loaded here -->
+  </div>
+</div>
+
+<script>
+  // DAO Governance Client-side Logic
+  let userWalletAddress = null;
+  let isNFTHolder = false;
+
+  // Initialize
+  async function initDAO() {
+    // Load stats
+    await loadDAOStats();
+
+    // Check wallet connection (integrate with MetaMask)
+    await checkWalletConnection();
+
+    // Load proposals
+    await loadProposals('all');
+
+    // Setup event listeners
+    setupEventListeners();
+  }
+
+  async function checkWalletConnection() {
+    // This would integrate with MetaMask or other wallet providers
+    // For now, check if window.ethereum exists
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          userWalletAddress = accounts[0];
+          await verifyNFTOwnership();
+        }
+      } catch (error) {
+        console.error('Wallet connection error:', error);
+      }
+    }
+  }
+
+  async function verifyNFTOwnership() {
+    if (!userWalletAddress) return;
+
+    try {
+      const response = await fetch('/api/nft/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: userWalletAddress })
+      });
+
+      const data = await response.json();
+      isNFTHolder = data.isOwner;
+
+      if (isNFTHolder) {
+        document.getElementById('nft-banner').style.display = 'flex';
+        document.getElementById('proposal-form').style.display = 'block';
+      }
+    } catch (error) {
+      console.error('NFT verification error:', error);
+    }
+  }
+
+  async function loadDAOStats() {
+    try {
+      const response = await fetch('/api/dao/stats');
+      const stats = await response.json();
+
+      document.getElementById('total-proposals').textContent = stats.totalProposals;
+      document.getElementById('active-proposals').textContent = stats.activeProposals;
+      document.getElementById('voting-proposals').textContent = stats.votingProposals;
+      document.getElementById('implemented-proposals').textContent = stats.implementedProposals;
+    } catch (error) {
+      console.error('Load stats error:', error);
+    }
+  }
+
+  async function loadProposals(filter) {
+    try {
+      const response = await fetch(`/api/dao/proposals?filter=${filter}`);
+      const proposals = await response.json();
+
+      const listContainer = document.getElementById('proposals-list');
+      listContainer.innerHTML = proposals.map(proposal => createProposalCard(proposal)).join('');
+
+      // Attach reaction listeners
+      attachReactionListeners();
+    } catch (error) {
+      console.error('Load proposals error:', error);
+    }
+  }
+
+  function createProposalCard(proposal) {
+    return `
+      <div class="proposal-card" data-proposal-id="${proposal.id}">
+        <div class="proposal-header">
+          <div>
+            <span class="proposal-type-badge type-${proposal.type}">${proposal.type.replace('_', ' ')}</span>
+            <span class="status-badge status-${proposal.status}">${proposal.status}</span>
+          </div>
+          <div class="proposal-meta">
+            <span>💬 ${proposal.commentCount}</span>
+          </div>
+        </div>
+        <h3 class="proposal-title">${proposal.title}</h3>
+        <p class="proposal-description">${proposal.description}</p>
+        <div class="proposal-meta">
+          <span>Proposed by ${proposal.proposerAddress.slice(0, 6)}...${proposal.proposerAddress.slice(-4)}</span>
+          <span>•</span>
+          <span>${new Date(proposal.createdAt).toLocaleDateString()}</span>
+        </div>
+        <div class="proposal-reactions">
+          <button class="reaction-btn" data-reaction="upvote">
+            👍 ${proposal.reactions.upvote}
+          </button>
+          <button class="reaction-btn" data-reaction="interested">
+            👀 ${proposal.reactions.interested}
+          </button>
+          <button class="reaction-btn" data-reaction="love">
+            ❤️ ${proposal.reactions.love}
+          </button>
+          <button class="reaction-btn" data-reaction="critical">
+            🤔 ${proposal.reactions.critical}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function setupEventListeners() {
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        e.target.classList.add('active');
+        loadProposals(e.target.dataset.filter);
+      });
+    });
+
+    // Form submission
+    document.getElementById('new-proposal-form')?.addEventListener('submit', handleProposalSubmit);
+  }
+
+  function attachReactionListeners() {
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+      btn.addEventListener('click', handleReaction);
+    });
+  }
+
+  async function handleReaction(e) {
+    if (!userWalletAddress) {
+      alert('Please connect your wallet to react');
+      return;
+    }
+
+    const btn = e.currentTarget;
+    const proposalCard = btn.closest('.proposal-card');
+    const proposalId = proposalCard.dataset.proposalId;
+    const reactionType = btn.dataset.reaction;
+
+    try {
+      const response = await fetch('/api/dao/reaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proposalId, userAddress: userWalletAddress, reactionType })
+      });
+
+      if (response.ok) {
+        // Reload proposals to show updated counts
+        const currentFilter = document.querySelector('.filter-tab.active').dataset.filter;
+        await loadProposals(currentFilter);
+      }
+    } catch (error) {
+      console.error('Reaction error:', error);
+    }
+  }
+
+  async function handleProposalSubmit(e) {
+    e.preventDefault();
+
+    if (!isNFTHolder) {
+      alert('Must hold Bandit Kidz NFT to submit proposals');
+      return;
+    }
+
+    const formData = {
+      title: document.getElementById('proposal-title').value,
+      description: document.getElementById('proposal-description').value,
+      type: document.getElementById('proposal-type').value,
+      estimatedComplexity: document.getElementById('proposal-complexity').value,
+      tags: document.getElementById('proposal-tags').value.split(',').map(t => t.trim()).filter(t => t),
+      relatedAgents: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+    };
+
+    try {
+      const response = await fetch('/api/dao/proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAddress: userWalletAddress, ...formData })
+      });
+
+      if (response.ok) {
+        alert('Proposal submitted successfully!');
+        e.target.reset();
+        await loadProposals('all');
+        await loadDAOStats();
+      }
+    } catch (error) {
+      console.error('Submit proposal error:', error);
+      alert('Failed to submit proposal');
+    }
+  }
+
+  // Initialize on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDAO);
+  } else {
+    initDAO();
+  }
+</script>

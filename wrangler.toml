@@ -30,9 +30,17 @@ PAINTSWAP_COLLECTION_URL = "https://paintswap.finance/marketplace/collections/0x
 # dRPC Configuration
 DRPC_HTTP_URL = "https://lb.drpc.org/sonic/"
 
+# AI Gateway Configuration
+AI_GATEWAY_ID = "sonic-server"
+HUGGINGFACE_GATEWAY = "https://gateway.ai.cloudflare.com/v1/ff3c5e2beaea9f85fee3200bfe28da16/sonic-server/huggingface"
+
 # AI Gateway binding for enhanced analysis
 [ai]
 binding = "AI"
+
+# Browser Rendering for web scraping (DexScreener trending)
+[browser]
+binding = "BROWSER"
 
 # Static Assets for React Dashboard
 # Commented out until React dashboard is built
@@ -48,7 +56,7 @@ binding = "HISTORICAL_DATA"
 bucket_name = "sonic-crypto-historical"
 preview_bucket_name = "sonic-crypto-historical-preview"
 
-# Durable Objects
+# Durable Objects - Caching & Sessions
 [[durable_objects.bindings]]
 name = "CRYPTO_CACHE"
 class_name = "CryptoDataCache"
@@ -56,6 +64,28 @@ class_name = "CryptoDataCache"
 [[durable_objects.bindings]]
 name = "MCP_SESSION"
 class_name = "MCPSessionManager"
+
+# Durable Objects - AI Agents
+[[durable_objects.bindings]]
+name = "OVERVIEW_AGENT"
+class_name = "OverviewAgent"
+
+# TODO: Implement remaining agents (Issues #4-#7)
+# [[durable_objects.bindings]]
+# name = "CHARTS_AGENT"
+# class_name = "ChartsAgent"
+
+# [[durable_objects.bindings]]
+# name = "TRADING_AGENT"
+# class_name = "TradingAgent"
+
+# [[durable_objects.bindings]]
+# name = "INTELLIGENCE_AGENT"
+# class_name = "IntelligenceAgent"
+
+# [[durable_objects.bindings]]
+# name = "CHAT_AGENT"
+# class_name = "ChatAgent"
 
 # KV Namespaces for caching and session management
 [[kv_namespaces]]
@@ -98,7 +128,7 @@ zone_name = "srvcflo.com"
 [observability.logs]
 enabled = true
 
-# Workflows configuration
+# Workflows configuration - Data Management
 [[workflows]]
 binding = "DATA_UPDATE_WORKFLOW"
 name = "sonic-data-update"
@@ -109,17 +139,47 @@ binding = "DATA_SEEDING_WORKFLOW"
 name = "sonic-data-seeding"
 class_name = "DataSeedingWorkflow"
 
+# Workflows configuration - Agent Operations
+# TODO: Implement agent-specific workflows (Issues #4-#6)
+# [[workflows]]
+# binding = "CHART_ANALYSIS_WORKFLOW"
+# name = "sonic-chart-analysis"
+# class_name = "ChartAnalysisWorkflow"
+
+# [[workflows]]
+# binding = "REPORT_GENERATION_WORKFLOW"
+# name = "sonic-report-generation"
+# class_name = "ReportGenerationWorkflow"
+
+# [[workflows]]
+# binding = "TRADE_APPROVAL_WORKFLOW"
+# name = "sonic-trade-approval"
+# class_name = "TradeApprovalWorkflow"
+
+# [[workflows]]
+# binding = "SOCIAL_INGESTION_WORKFLOW"
+# name = "sonic-social-ingestion"
+# class_name = "SocialIngestionWorkflow"
+
 # Durable Objects migrations
 [[migrations]]
 tag = "v1"
 new_classes = [ "CryptoDataCache", "MCPSessionManager" ]
 
-# Cron triggers for automated market reports
+[[migrations]]
+tag = "v2"
+new_classes = [ "OverviewAgent" ]
+# TODO: Add remaining agents when implemented: ChartsAgent, TradingAgent, IntelligenceAgent, ChatAgent
+
+# Cron triggers for automated operations
 [triggers]
 crons = [
-  "0 8 * * *",   # Morning report at 8:00 AM UTC
-  "0 12 * * *",  # Lunch report at 12:00 PM UTC
-  "0 20 * * *"   # Evening report at 8:00 PM UTC
+  "*/5 * * * *",  # Update trending pairs (Overview Agent) - every 5 minutes
+  "0 */1 * * *",  # Refresh market data (Trading Agent) - hourly
+  "0 8 * * *",    # Morning report (Intelligence Agent) - 8:00 AM UTC
+  "0 12 * * *",   # Midday report (Intelligence Agent) - 12:00 PM UTC
+  "0 20 * * *",   # Evening report (Intelligence Agent) - 8:00 PM UTC
+  "0 0 * * *"     # Daily data cleanup - midnight UTC
 ]
 
 # R2 Storage for market reports
@@ -128,11 +188,22 @@ binding = "MARKET_REPORTS"
 bucket_name = "sonic-market-reports"
 preview_bucket_name = "sonic-market-reports-preview"
 
+# Cloudflare Pipelines for Discord data ingestion
+# TODO: Create pipelines first, then uncomment (Issue #6)
+# [[pipelines]]
+# binding = "DISCORD_NFT_PIPELINE"
+# pipeline = "sonic-nft-feed"
+
+# [[pipelines]]
+# binding = "DISCORD_TWITTER_PIPELINE"
+# pipeline = "sonic-twitter-feed"
+
 # Secrets (set with: wrangler secret put SECRET_NAME)
 # COINDESK_API_KEY - CoinDesk API authentication
 # COINMARKETCAP_API_KEY - CoinMarketCap API for trending/global data (FREE PLAN)
 # DISCORD_BOT_TOKEN - Discord bot token for community intelligence
 # BRAVE_API_KEY - Brave Search API for news
 # DRPC_API_KEY - dRPC node API key for Web3 RPC calls
-# AI_GATEWAY_TOKEN - AI Gateway authentication (optional)
+# AI_GATEWAY_TOKEN - AI Gateway authentication: k1ZP2VZVCPkjJD_Z7GVbh_L9M41N3NgaoLmyb0uR
 # ANTHROPIC_API_KEY - Alternative AI provider (optional)
+# PIPELINE_BEARER_TOKEN - Bearer token for Discord pipeline authentication

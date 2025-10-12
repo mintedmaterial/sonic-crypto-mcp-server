@@ -11,9 +11,19 @@ export interface Env {
   SONIC_CACHE: KVNamespace;
   API_RATE_LIMIT: KVNamespace;
 
-  // Durable Objects
+  // Browser Rendering
+  BROWSER?: Fetcher;
+
+  // Durable Objects - Core
   CRYPTO_CACHE: DurableObjectNamespace;
   MCP_SESSION: DurableObjectNamespace;
+
+  // Durable Objects - AI Agents
+  OVERVIEW_AGENT: DurableObjectNamespace;
+  CHARTS_AGENT: DurableObjectNamespace;
+  TRADING_AGENT: DurableObjectNamespace;
+  INTELLIGENCE_AGENT: DurableObjectNamespace;
+  CHAT_AGENT: DurableObjectNamespace;
 
   // R2 Buckets
   HISTORICAL_DATA: R2Bucket;
@@ -32,6 +42,14 @@ export interface Env {
   // Workflows
   DATA_UPDATE_WORKFLOW?: Workflow;
   DATA_SEEDING_WORKFLOW?: Workflow;
+  CHART_ANALYSIS_WORKFLOW?: Workflow;
+  REPORT_GENERATION_WORKFLOW?: Workflow;
+  TRADE_APPROVAL_WORKFLOW?: Workflow;
+  SOCIAL_INGESTION_WORKFLOW?: Workflow;
+
+  // Pipelines
+  DISCORD_NFT_PIPELINE?: any; // Pipeline from cloudflare:pipelines
+  DISCORD_TWITTER_PIPELINE?: any; // Pipeline from cloudflare:pipelines
 
   // Secrets
   COINDESK_API_KEY: string;

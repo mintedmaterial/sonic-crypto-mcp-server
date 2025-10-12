@@ -14,8 +14,11 @@ import { ALL_TOOLS, executeTool } from './tools/index';
 import { seedHistoricalData, refreshRecentData, initializeD1Schema, DEFAULT_SEEDING_CONFIG } from './workflows/data-seeding';
 import { DataUpdateWorkflow, DataSeedingWorkflow } from './workflows/data-workflow';
 
-// Export Durable Objects
+// Export Durable Objects - Core
 export { CryptoDataCache, MCPSessionManager };
+
+// Export Durable Objects - AI Agents
+export { OverviewAgent } from './agents/overview-agent';
 
 // Export Workflows
 export { DataUpdateWorkflow, DataSeedingWorkflow };
