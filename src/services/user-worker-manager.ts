@@ -126,17 +126,6 @@ export class UserWorkerManager {
       body: options.body,
     });
 
-    // Check if dispatch namespace is available
-    if (!this.env.DISPATCHER) {
-      return new Response(
-        JSON.stringify({
-          error: 'Dispatch namespace not configured. Please create sonic-user-workers namespace first.',
-          instructions: 'Run: wrangler dispatch-namespace create sonic-user-workers'
-        }),
-        { status: 503, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
     try {
       // Dispatch to user worker via namespace
       const worker = this.env.DISPATCHER.get(config.workerName);
