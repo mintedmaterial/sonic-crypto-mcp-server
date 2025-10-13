@@ -79,11 +79,11 @@ class_name = "ChartsAgent"
 name = "TRADING_AGENT"
 class_name = "TradingAgent"
 
-# TODO: Implement remaining agents (Issues #6-#7)
+# TODO: Implement remaining agents (Issue #7)
 
-# [[durable_objects.bindings]]
-# name = "INTELLIGENCE_AGENT"
-# class_name = "IntelligenceAgent"
+[[durable_objects.bindings]]
+name = "INTELLIGENCE_AGENT"
+class_name = "IntelligenceAgent"
 
 # [[durable_objects.bindings]]
 # name = "CHAT_AGENT"
@@ -200,7 +200,11 @@ new_classes = [ "ChartsAgent" ]
 [[migrations]]
 tag = "v4"
 new_classes = [ "TradingAgent" ]
-# TODO: Add remaining agents when implemented: IntelligenceAgent, ChatAgent
+
+[[migrations]]
+tag = "v5"
+new_classes = [ "IntelligenceAgent" ]
+# TODO: Add remaining agents when implemented: ChatAgent
 
 # Cron triggers for automated operations
 [triggers]
