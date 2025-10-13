@@ -1,16 +1,16 @@
 #Wrangler config for Sonic Crypto MCP Server
 
-name = "coindesk-mcp"
+name = "sonic-crypto-mcp-server"
 main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
 # Worker configuration
 [env.production]
-name = "coindesk-mcp-prod"
+name = "sonic-crypto-mcp-server-prod"
 
 [env.staging]
-name = "coindesk-mcp-staging"
+name = "sonic-crypto-mcp-server-staging"
 
 # Environment variables
 [vars]
@@ -132,9 +132,11 @@ cpu_ms = 50000
 command = "npm run build"
 
 # Custom domain configuration
-[[routes]]
-pattern = "ss.srvcflo.com/*"
-zone_name = "srvcflo.com"
+# Route currently assigned to "coindesk-mcp" worker
+# Comment out until route is reassigned in Cloudflare dashboard to "sonic-crypto-mcp-server"
+# [[routes]]
+# pattern = "ss.srvcflo.com/*"
+# zone_name = "srvcflo.com"
 
 # Workers Logs configuration
 [observability.logs]
@@ -147,7 +149,7 @@ enabled = true
 [[dispatch_namespaces]]
 binding = "DISPATCHER"
 namespace = "sonic-user-workers"
-outbound = { service = "coindesk-mcp", parameters = ["env"] }
+outbound = { service = "sonic-crypto-mcp-server", parameters = ["env"] }
 
 # Workflows configuration - Data Management
 [[workflows]]
