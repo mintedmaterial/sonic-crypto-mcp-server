@@ -79,15 +79,13 @@ class_name = "ChartsAgent"
 name = "TRADING_AGENT"
 class_name = "TradingAgent"
 
-# TODO: Implement remaining agents (Issue #7)
-
 [[durable_objects.bindings]]
 name = "INTELLIGENCE_AGENT"
 class_name = "IntelligenceAgent"
 
-# [[durable_objects.bindings]]
-# name = "CHAT_AGENT"
-# class_name = "ChatAgent"
+[[durable_objects.bindings]]
+name = "CHAT_AGENT"
+class_name = "ChatAgent"
 
 # Cloudflare Container for Charts Agent (Python ML)
 # TODO: Containers are not yet available in all Cloudflare accounts
@@ -204,7 +202,10 @@ new_classes = [ "TradingAgent" ]
 [[migrations]]
 tag = "v5"
 new_classes = [ "IntelligenceAgent" ]
-# TODO: Add remaining agents when implemented: ChatAgent
+
+[[migrations]]
+tag = "v6"
+new_classes = [ "ChatAgent" ]
 
 # Cron triggers for automated operations
 [triggers]

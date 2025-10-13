@@ -22,6 +22,7 @@ export { OverviewAgent } from './agents/overview-agent';
 export { ChartsAgent, ChartsContainer } from './agents/charts-agent';
 export { TradingAgent } from './agents/trading-agent';
 export { IntelligenceAgent } from './agents/intelligence-agent';
+export { ChatAgent } from './agents/chat-agent';
 
 // Export Workflows
 export { DataUpdateWorkflow, DataSeedingWorkflow };
