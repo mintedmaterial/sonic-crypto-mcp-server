@@ -130,11 +130,9 @@ cpu_ms = 50000
 command = "npm run build"
 
 # Custom domain configuration
-# Route currently assigned to "coindesk-mcp" worker
-# Comment out until route is reassigned in Cloudflare dashboard to "sonic-crypto-mcp-server"
-# [[routes]]
-# pattern = "ss.srvcflo.com/*"
-# zone_name = "srvcflo.com"
+[[routes]]
+pattern = "ss.srvcflo.com/*"
+zone_name = "srvcflo.com"
 
 # Workers Logs configuration
 [observability.logs]
