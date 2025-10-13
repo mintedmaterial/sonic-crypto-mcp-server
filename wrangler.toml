@@ -1,16 +1,16 @@
 #Wrangler config for Sonic Crypto MCP Server
 
-name = "sonic-crypto-mcp-server"
+name = "coindesk-mcp"
 main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
 # Worker configuration
 [env.production]
-name = "sonic-crypto-mcp-server-prod"
+name = "coindesk-mcp-prod"
 
 [env.staging]
-name = "sonic-crypto-mcp-server-staging"
+name = "coindesk-mcp-staging"
 
 # Environment variables
 [vars]
@@ -142,10 +142,12 @@ enabled = true
 # Workers for Platforms - User-specific worker instances
 # Each NFT holder gets isolated worker with personalized agents
 # Shared with Vibe SDK for cross-platform user experiences
-[[dispatch_namespaces]]
-binding = "DISPATCHER"
-namespace = "sonic-user-workers"
-outbound = { service = "sonic-crypto-mcp-server", parameters = ["env"] }
+# TODO: Create dispatch namespace first, then uncomment:
+# wrangler dispatch-namespace create sonic-user-workers
+# [[dispatch_namespaces]]
+# binding = "DISPATCHER"
+# namespace = "sonic-user-workers"
+# outbound = { service = "coindesk-mcp", parameters = ["env"] }
 
 # Workflows configuration - Data Management
 [[workflows]]
