@@ -1319,12 +1319,12 @@ export function getEnhancedDashboardHTML(): string {
                 <div class="trending-name">\${token.name}</div>
               </div>
               <div class="trending-stats">
-                <div class="trending-price">$\${token.price < 0.01 ? token.price.toFixed(6) : token.price.toFixed(4)}</div>
+                <div class="trending-price">$\${token.priceUsd < 0.01 ? token.priceUsd.toFixed(6) : token.priceUsd.toFixed(4)}</div>
                 <div class="trending-change price-change positive">+\${token.percent_change_24h.toFixed(2)}%</div>
               </div>
             </div>
           \`).join('');
-          
+
           // Render losers
           losersEl.innerHTML = data.data.losers.slice(0, 5).map((token, i) => \`
             <div class="trending-item">
@@ -1334,7 +1334,7 @@ export function getEnhancedDashboardHTML(): string {
                 <div class="trending-name">\${token.name}</div>
               </div>
               <div class="trending-stats">
-                <div class="trending-price">$\${token.price < 0.01 ? token.price.toFixed(6) : token.price.toFixed(4)}</div>
+                <div class="trending-price">$\${token.priceUsd < 0.01 ? token.priceUsd.toFixed(6) : token.priceUsd.toFixed(4)}</div>
                 <div class="trending-change price-change negative">\${token.percent_change_24h.toFixed(2)}%</div>
               </div>
             </div>
@@ -1350,24 +1350,35 @@ export function getEnhancedDashboardHTML(): string {
       }
     }
 
-    function updateHeatmap(tokens) {
+    async function refreshHeatmap() {
       const heatmapEl = document.getElementById('market-heatmap');
-      
-      heatmapEl.innerHTML = '<div class="heatmap-grid">' + 
-        tokens.slice(0, 9).map(token => {
-          const change = token.percent_change_24h;
-          const intensity = Math.min(Math.abs(change) / 20, 1);
-          const bgColor = change > 0 
-            ? \`rgba(16, 185, 129, \${intensity})\`
-            : \`rgba(239, 68, 68, \${intensity})\`;
-          
-          return \`
-            <div class="heatmap-cell" style="background: \${bgColor};">
-              <div class="heatmap-cell-symbol">\${token.symbol}</div>
-              <div class="heatmap-cell-change">\${change > 0 ? '+' : ''}\${change.toFixed(1)}%</div>
-            </div>
-          \`;
-        }).join('') + '</div>';
+      heatmapEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+      try {
+        const response = await fetch('/api/trending?source=sonic&limit=9');
+        const data = await response.json();
+
+        if (data.success) {
+          const tokens = [...data.data.gainers, ...data.data.losers].slice(0, 9);
+          heatmapEl.innerHTML = '<div class="heatmap-grid">' +
+            tokens.map(token => {
+              const change = token.percent_change_24h;
+              const intensity = Math.min(Math.abs(change) / 20, 1);
+              const bgColor = change > 0
+                ? \`rgba(16, 185, 129, \${intensity})\`
+                : \`rgba(239, 68, 68, \${intensity})\`;
+
+              return \`
+                <div class="heatmap-cell" style="background: \${bgColor};">
+                  <div class="heatmap-cell-symbol">\${token.symbol}</div>
+                  <div class="heatmap-cell-change">\${change > 0 ? '+' : ''}\${change.toFixed(1)}%</div>
+                </div>
+              \`;
+            }).join('') + '</div>';
+        }
+      } catch (error) {
+        heatmapEl.innerHTML = '<div class="error-message">Failed to load heatmap</div>';
+      }
     }
     
     async function refreshPrices() {

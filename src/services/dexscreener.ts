@@ -250,21 +250,31 @@ export class DexScreenerService {
     gainers: Array<{
       symbol: string;
       name: string;
-      price: number;
+      tokenAddress: string;
+      priceUsd: number;
+      priceNative: number;
       percent_change_24h: number;
       volume_24h: number;
       liquidity: number;
+      marketCap: number;
+      fdv: number;
       dexId: string;
+      pairAddress: string;
       url: string;
     }>;
     losers: Array<{
       symbol: string;
       name: string;
-      price: number;
+      tokenAddress: string;
+      priceUsd: number;
+      priceNative: number;
       percent_change_24h: number;
       volume_24h: number;
       liquidity: number;
+      marketCap: number;
+      fdv: number;
       dexId: string;
+      pairAddress: string;
       url: string;
     }>;
     timestamp: string;
@@ -283,35 +293,40 @@ export class DexScreenerService {
     }
 
     try {
-      // Get Sonic chain pairs - search for popular Sonic tokens and known pairs
-      // DexScreener doesn't have a direct /pairs/sonic endpoint
-      const sonicTokens = ['S', 'SONIC', 'wS', 'scUSD', 'USDC', 'USDT', 'WETH', 'WBTC'];
+      // Get Sonic chain pairs by searching for common quote tokens
+      // This gives us diverse base tokens paired with USDC, wS, etc.
       let allPairs: DexScreenerToken[] = [];
 
-      // Fetch pairs for multiple tokens in parallel
-      const searchPromises = sonicTokens.map(async (token) => {
+      // Search for pairs with major quote tokens on Sonic to find diverse base tokens
+      const quoteTokenSearches = [
+        'USDC sonic',
+        'wS sonic',
+        'scUSD sonic',
+        'SONIC'
+      ];
+
+      const searchPromises = quoteTokenSearches.map(async (query) => {
         try {
           const response = await fetch(
-            `${this.baseUrl}/latest/dex/search?q=${token}`,
+            `${this.baseUrl}/latest/dex/search?q=${encodeURIComponent(query)}`,
             {
               method: 'GET',
-              headers: {
-                'Accept': '*/*',
-              },
+              headers: { 'Accept': '*/*' },
             }
           );
 
-          if (!response.ok) {
-            return [];
-          }
-
+          if (!response.ok) return [];
           const data = await response.json() as any;
           const pairs = data.pairs || [];
-          
-          // Filter for Sonic chain only
-          return pairs.filter((p: DexScreenerToken) => p.chainId === 'sonic');
+
+          // Filter for Sonic chain only and pairs with USD prices
+          return pairs.filter((p: DexScreenerToken) =>
+            p.chainId === 'sonic' &&
+            p.priceUsd &&
+            parseFloat(p.priceUsd) > 0
+          );
         } catch (error) {
-          console.error(`Error fetching ${token}:`, error);
+          console.error(`Error searching ${query}:`, error);
           return [];
         }
       });
@@ -362,11 +377,16 @@ export class DexScreenerService {
         .map(p => ({
           symbol: p.baseToken.symbol,
           name: p.baseToken.name,
-          price: parseFloat(p.priceUsd),
+          tokenAddress: p.baseToken.address,
+          priceUsd: parseFloat(p.priceUsd),
+          priceNative: parseFloat(p.priceNative),
           percent_change_24h: p.priceChange?.h24 || 0,
           volume_24h: p.volume?.h24 || 0,
           liquidity: p.liquidity?.usd || 0,
+          marketCap: p.marketCap || 0,
+          fdv: p.fdv || 0,
           dexId: p.dexId,
+          pairAddress: p.pairAddress,
           url: p.url
         }));
 
@@ -378,11 +398,16 @@ export class DexScreenerService {
         .map(p => ({
           symbol: p.baseToken.symbol,
           name: p.baseToken.name,
-          price: parseFloat(p.priceUsd),
+          tokenAddress: p.baseToken.address,
+          priceUsd: parseFloat(p.priceUsd),
+          priceNative: parseFloat(p.priceNative),
           percent_change_24h: p.priceChange?.h24 || 0,
           volume_24h: p.volume?.h24 || 0,
           liquidity: p.liquidity?.usd || 0,
+          marketCap: p.marketCap || 0,
+          fdv: p.fdv || 0,
           dexId: p.dexId,
+          pairAddress: p.pairAddress,
           url: p.url
         }));
 
