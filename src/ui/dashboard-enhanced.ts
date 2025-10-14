@@ -1454,25 +1454,40 @@ export function getEnhancedDashboardHTML(): string {
     async function refreshOrderly() {
       const orderlyEl = document.getElementById('orderly-markets');
       orderlyEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-      
+
       try {
         const response = await fetch('/api/orderly/markets');
         const data = await response.json();
-        
-        if (data.success && data.data.rows) {
-          orderlyEl.innerHTML = data.data.rows.slice(0, 10).map(market => \`
+
+        if (data.success && Array.isArray(data.data)) {
+          if (data.data.length === 0) {
+            orderlyEl.innerHTML = '<div class="info-text">No Orderly markets available</div>';
+            return;
+          }
+
+          orderlyEl.innerHTML = data.data.slice(0, 10).map(market => {
+            // Calculate 24h change from mark_price
+            const changePercent = market['24h_close'] && market['24h_open']
+              ? ((market['24h_close'] - market['24h_open']) / market['24h_open']) * 100
+              : 0;
+
+            return \`
             <div class="price-item">
               <div class="price-info">
-                <div class="price-label">\${market.symbol}</div>
-                <div class="price-value">$\${parseFloat(market.index_price || 0).toFixed(2)}</div>
+                <div class="price-label">📖 \${market.symbol}</div>
+                <div class="price-value">$\${parseFloat(market.mark_price || market.index_price || 0).toFixed(2)}</div>
               </div>
-              <div class="price-change \${parseFloat(market.change_24h || 0) >= 0 ? 'positive' : 'negative'}">
-                \${parseFloat(market.change_24h || 0).toFixed(2)}%
+              <div class="price-change \${changePercent >= 0 ? 'positive' : 'negative'}">
+                \${changePercent >= 0 ? '+' : ''}\${changePercent.toFixed(2)}%
               </div>
             </div>
-          \`).join('');
+          \`;
+          }).join('');
+        } else {
+          orderlyEl.innerHTML = '<div class="info-text">No Orderly market data available</div>';
         }
       } catch (error) {
+        console.error('Orderly markets error:', error);
         orderlyEl.innerHTML = '<div class="error-message">Failed to load Orderly markets</div>';
       }
     }
@@ -1480,25 +1495,36 @@ export function getEnhancedDashboardHTML(): string {
     async function refreshDexScreener() {
       const dexEl = document.getElementById('dex-pairs');
       dexEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-      
+
       try {
         const response = await fetch('/api/dexscreener/sonic');
         const data = await response.json();
-        
-        if (data.success && data.data.pairs) {
-          dexEl.innerHTML = data.data.pairs.slice(0, 10).map(pair => \`
+
+        if (data.success && data.data) {
+          // data.data is an object like { "SONIC": {...}, "S": {...} }
+          const prices = Object.values(data.data);
+
+          if (prices.length === 0) {
+            dexEl.innerHTML = '<div class="info-text">No Sonic DEX pairs available</div>';
+            return;
+          }
+
+          dexEl.innerHTML = prices.slice(0, 10).map(priceData => \`
             <div class="price-item">
               <div class="price-info">
-                <div class="price-label">\${pair.baseToken.symbol}/\${pair.quoteToken.symbol}</div>
-                <div class="price-value">$\${parseFloat(pair.priceUsd || 0).toFixed(6)}</div>
+                <div class="price-label">💧 \${priceData.symbol}/USD</div>
+                <div class="price-value">$\${priceData.price < 0.01 ? priceData.price.toFixed(6) : priceData.price.toFixed(4)}</div>
               </div>
-              <div class="price-change \${pair.priceChange?.h24 >= 0 ? 'positive' : 'negative'}">
-                \${pair.priceChange?.h24 ? (pair.priceChange.h24 >= 0 ? '+' : '') + pair.priceChange.h24.toFixed(2) + '%' : 'N/A'}
+              <div class="price-change \${priceData.priceChange24h >= 0 ? 'positive' : 'negative'}">
+                \${priceData.priceChange24h >= 0 ? '+' : ''}\${priceData.priceChange24h.toFixed(2)}%
               </div>
             </div>
           \`).join('');
+        } else {
+          dexEl.innerHTML = '<div class="info-text">No DEX pair data available</div>';
         }
       } catch (error) {
+        console.error('DexScreener error:', error);
         dexEl.innerHTML = '<div class="error-message">Failed to load DEX pairs</div>';
       }
     }
