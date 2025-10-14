@@ -1069,7 +1069,8 @@ export function getEnhancedDashboardHTML(): string {
     const logos = [];
     const logoCount = 30;
     const logoImg = new Image();
-    logoImg.src = 'https://avatars.githubusercontent.com/u/180664396?s=200&v=4';
+    // Use Sonic Labs logo from official CDN
+    logoImg.src = 'https://assets-global.website-files.com/663e1671dc7941d9667e4c92/663e1671dc7941d9667e4ccf_sonic_logo.svg';
     
     class Logo {
       constructor() {
