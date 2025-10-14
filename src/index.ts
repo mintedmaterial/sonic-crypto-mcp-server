@@ -586,7 +586,7 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
       // NFT verification endpoint
       if (path === '/api/verify-nft' && request.method === 'POST') {
         try {
-          const { walletAddress } = await request.json() as any;
+          const { walletAddress, skipCache } = await request.json() as any;
 
           if (!walletAddress) {
             return new Response(JSON.stringify({ error: 'walletAddress required' }), {
@@ -598,7 +598,10 @@ Provide concise, data-driven insights. Use specific numbers from the data when r
           const { NFTVerificationService } = await import('./services/nft-verification');
           const nftService = new NFTVerificationService(env, 146);
 
-          const result = await nftService.verifyWithCache(walletAddress);
+          // Use skipCache parameter to bypass cache for testing
+          const result = skipCache
+            ? await nftService.verifyHolder(walletAddress)
+            : await nftService.verifyWithCache(walletAddress);
 
           return new Response(JSON.stringify(result, null, 2), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
