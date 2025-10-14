@@ -42,10 +42,10 @@ export class NFTVerificationService {
     this.contractAddress = env.BANDIT_KIDZ_CONTRACT;
     this.apiKey = env.DRPC_API_KEY;
 
-    // Use dRPC for Sonic with Drpc-Key header authentication
-    // Recommended format: https://lb.drpc.org/ogrpc?network=sonic with Drpc-Key header
+    // Use dRPC Sonic-specific endpoint with URL-based authentication
+    // Format: https://lb.drpc.org/sonic/{API_KEY}
     if (this.apiKey) {
-      this.rpcUrl = 'https://lb.drpc.org/ogrpc?network=sonic';
+      this.rpcUrl = `${env.DRPC_HTTP_URL}${this.apiKey}`;
     } else {
       // Fallback to Sonic Labs official RPC (free, no API key required)
       this.rpcUrl = 'https://rpc.soniclabs.com';
@@ -91,19 +91,12 @@ export class NFTVerificationService {
     const paddedAddress = address.slice(2).padStart(64, '0');
     const data = functionSignature + paddedAddress;
 
-    // Build headers with dRPC authentication
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    // Add Drpc-Key header if using dRPC
-    if (this.apiKey) {
-      headers['Drpc-Key'] = this.apiKey;
-    }
-
+    // dRPC uses URL-based authentication, no headers needed
     const response = await fetch(this.rpcUrl, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
