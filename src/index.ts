@@ -8,6 +8,7 @@ import { R2StorageService } from './storage/r2';
 import { D1StorageService } from './storage/d1';
 import { getSonicDashboardHTML } from './ui/dashboard';
 import { getEnhancedDashboardHTML } from './ui/dashboard-enhanced';
+import { getVibeSDKDashboard } from './ui/dashboard-vibesdk';
 import { CryptoDataCache } from './durable-objects/crypto-cache';
 import { MCPSessionManager } from './durable-objects/session-manager';
 import { ALL_TOOLS, executeTool } from './tools/index';

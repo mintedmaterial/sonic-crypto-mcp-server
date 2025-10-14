@@ -36,12 +36,20 @@ export interface NFTVerificationResult {
 export class NFTVerificationService {
   private contractAddress: string;
   private rpcUrl: string;
+  private apiKey: string | undefined;
 
   constructor(private env: Env, chainId: number = 146) {
     this.contractAddress = env.BANDIT_KIDZ_CONTRACT;
+    this.apiKey = env.DRPC_API_KEY;
 
-    // Use Sonic Labs official RPC (free, no API key required)
-    this.rpcUrl = 'https://rpc.soniclabs.com';
+    // Use dRPC for Sonic with Drpc-Key header authentication
+    // Recommended format: https://lb.drpc.org/ogrpc?network=sonic with Drpc-Key header
+    if (this.apiKey) {
+      this.rpcUrl = 'https://lb.drpc.org/ogrpc?network=sonic';
+    } else {
+      // Fallback to Sonic Labs official RPC (free, no API key required)
+      this.rpcUrl = 'https://rpc.soniclabs.com';
+    }
   }
 
   /**
@@ -83,9 +91,19 @@ export class NFTVerificationService {
     const paddedAddress = address.slice(2).padStart(64, '0');
     const data = functionSignature + paddedAddress;
 
+    // Build headers with dRPC authentication
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add Drpc-Key header if using dRPC
+    if (this.apiKey) {
+      headers['Drpc-Key'] = this.apiKey;
+    }
+
     const response = await fetch(this.rpcUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
