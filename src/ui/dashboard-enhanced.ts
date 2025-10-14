@@ -15,18 +15,82 @@ export function getEnhancedDashboardHTML(): string {
   
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+
+    /* VibeSDK Color Scheme */
     :root {
       --bg-primary: #0a0a0b;
       --bg-secondary: #18181b;
       --bg-card: #27272a;
       --text-primary: #fafafa;
       --text-secondary: #a1a1aa;
-      --accent-orange: #f97316;
+      --accent-orange: #f6821f;
       --accent-blue: #3b82f6;
       --accent-green: #10b981;
       --accent-red: #ef4444;
       --border: #3f3f46;
+    }
+
+    .dark {
+      --bg-1: #151515;
+      --bg-2: #1f2020;
+      --bg-3: #292929;
+      --bg-4: #3c3c3c;
+      --text-primary: #ffffff;
+      --text-secondary: #cdcaca;
+      --text-tertiary: #bcb9b9;
+      --accent: #f6821f;
+    }
+
+    /* VibeSDK Glow Animations */
+    @keyframes glow-shift {
+      0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.3)) drop-shadow(0 0 16px rgba(59, 130, 246, 0.15));
+      }
+      25% {
+        filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.3)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.15));
+      }
+      50% {
+        filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.3)) drop-shadow(0 0 16px rgba(6, 182, 212, 0.15));
+      }
+      75% {
+        filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.3)) drop-shadow(0 0 16px rgba(236, 72, 153, 0.15));
+      }
+    }
+
+    @keyframes border-glow-shift {
+      0%, 100% {
+        box-shadow: 0 0 12px rgba(59, 130, 246, 0.2), 0 0 24px rgba(59, 130, 246, 0.1), inset 0 0 12px rgba(59, 130, 246, 0.05);
+      }
+      25% {
+        box-shadow: 0 0 12px rgba(168, 85, 247, 0.2), 0 0 24px rgba(168, 85, 247, 0.1), inset 0 0 12px rgba(168, 85, 247, 0.05);
+      }
+      50% {
+        box-shadow: 0 0 12px rgba(6, 182, 212, 0.2), 0 0 24px rgba(6, 182, 212, 0.1), inset 0 0 12px rgba(6, 182, 212, 0.05);
+      }
+      75% {
+        box-shadow: 0 0 12px rgba(236, 72, 153, 0.2), 0 0 24px rgba(236, 72, 153, 0.1), inset 0 0 12px rgba(236, 72, 153, 0.05);
+      }
+    }
+
+    @keyframes chat-edge-throb {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(246, 130, 31, 0.10), inset 0 0 0 1px rgba(246, 130, 31, 0.16);
+      }
+      50% {
+        box-shadow: 0 0 0 6px rgba(255, 61, 0, 0.08), inset 0 0 0 2px rgba(255, 61, 0, 0.22);
+      }
+    }
+
+    .text-glow {
+      animation: glow-shift 8s ease-in-out infinite;
+    }
+
+    .line-glow {
+      animation: border-glow-shift 8s ease-in-out infinite;
+    }
+
+    .chat-edge-throb {
+      animation: chat-edge-throb 1.6s ease-in-out infinite;
     }
     
     body {
@@ -34,6 +98,8 @@ export function getEnhancedDashboardHTML(): string {
       background: var(--bg-primary);
       color: var(--text-primary);
       min-height: 100vh;
+      /* VibeSDK Graph Paper Background */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
     
     /* Logo rainfall canvas */
@@ -177,7 +243,7 @@ export function getEnhancedDashboardHTML(): string {
       .header-stats { flex-direction: column; gap: 1rem; }
     }
     
-    /* Card */
+    /* Card with VibeSDK glow */
     .card {
       background: rgba(39, 39, 42, 0.8);
       backdrop-filter: blur(10px);
@@ -186,9 +252,9 @@ export function getEnhancedDashboardHTML(): string {
       padding: 1.5rem;
       transition: all 0.3s;
     }
-    
+
     .card:hover {
-      border-color: rgba(249, 115, 22, 0.5);
+      border-color: rgba(246, 130, 31, 0.5);
       transform: translateY(-2px);
     }
     
@@ -661,7 +727,7 @@ export function getEnhancedDashboardHTML(): string {
     <!-- Header with global stats -->
     <div class="header">
       <div class="header-title">
-        <h1>🚀 Sonic Crypto Intelligence</h1>
+        <h1 class="text-glow">🚀 Sonic Crypto Intelligence</h1>
         <p class="header-subtitle">Real-time market data powered by AI</p>
         <a href="https://paintswap.finance/marketplace/collections/0x45bc8a938e487fde4f31a7e051c2b63627f6f966"
            target="_blank"
@@ -716,7 +782,7 @@ export function getEnhancedDashboardHTML(): string {
     <div id="tab-overview" class="tab-content active">
       <div class="grid grid-3">
         <!-- Trending Gainers -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">💧 Top Sonic Gainers 24h</div>
             <div class="card-action" onclick="refreshTrending()">🔄</div>
@@ -727,7 +793,7 @@ export function getEnhancedDashboardHTML(): string {
         </div>
         
         <!-- Trending Losers -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">📉 Top Sonic Losers 24h</div>
             <div class="card-action" onclick="refreshTrending()">🔄</div>
@@ -738,7 +804,7 @@ export function getEnhancedDashboardHTML(): string {
         </div>
         
         <!-- Price Heatmap -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">🗺️ Market Heatmap</div>
             <div class="card-action" onclick="refreshHeatmap()">🔄</div>
@@ -751,7 +817,7 @@ export function getEnhancedDashboardHTML(): string {
       
       <div class="grid grid-2" style="margin-top: 1rem;">
         <!-- Live Prices -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">💹 Live Sonic Prices</div>
             <div class="card-action" onclick="refreshPrices()">🔄</div>
@@ -762,7 +828,7 @@ export function getEnhancedDashboardHTML(): string {
         </div>
         
         <!-- Market Sentiment -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">🧠 AI Market Sentiment</div>
             <div class="card-action" onclick="refreshSentiment()">🔄</div>
@@ -802,7 +868,7 @@ export function getEnhancedDashboardHTML(): string {
       
       <div class="grid grid-2">
         <!-- Volume Chart -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">📊 Volume Analysis</div>
           </div>
@@ -812,7 +878,7 @@ export function getEnhancedDashboardHTML(): string {
         </div>
         
         <!-- Market Overview Chart -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">🌐 Market Distribution</div>
           </div>
@@ -827,7 +893,7 @@ export function getEnhancedDashboardHTML(): string {
     <div id="tab-trading" class="tab-content">
       <div class="grid grid-2">
         <!-- Orderly Markets -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">📖 Orderly DEX Markets</div>
             <div class="card-action" onclick="refreshOrderly()">🔄</div>
@@ -838,7 +904,7 @@ export function getEnhancedDashboardHTML(): string {
         </div>
         
         <!-- DexScreener Sonic Pairs -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">💧 Sonic DEX Pairs</div>
             <div class="card-action" onclick="refreshDexScreener()">🔄</div>
@@ -924,7 +990,7 @@ export function getEnhancedDashboardHTML(): string {
         </div>
         
         <!-- Community Stats -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">📊 Community Stats</div>
           </div>
@@ -945,7 +1011,7 @@ export function getEnhancedDashboardHTML(): string {
         </div>
         
         <!-- Latest News -->
-        <div class="card">
+        <div class="card line-glow">
           <div class="card-header">
             <div class="card-title">📰 Crypto News</div>
             <div class="card-action" onclick="refreshNews()">🔄</div>
@@ -960,7 +1026,7 @@ export function getEnhancedDashboardHTML(): string {
     <!-- Tab: AI Chat -->
     <div id="tab-chat" class="tab-content">
       <div class="grid grid-1">
-        <div class="card" style="max-width: 900px; margin: 0 auto; width: 100%;">
+        <div class="card line-glow chat-edge-throb" style="max-width: 900px; margin: 0 auto; width: 100%;">
           <div class="card-header">
             <div class="card-title">💬 AI Assistant</div>
             <button class="card-action" style="padding: 0.5rem 1rem;" onclick="clearChat()">Clear</button>
