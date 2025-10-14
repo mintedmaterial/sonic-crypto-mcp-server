@@ -40,8 +40,8 @@ export class NFTVerificationService {
   constructor(private env: Env, chainId: number = 146) {
     this.contractAddress = env.BANDIT_KIDZ_CONTRACT;
 
-    // Use dRPC for RPC calls
-    this.rpcUrl = `${env.DRPC_HTTP_URL}${env.DRPC_API_KEY}`;
+    // Use Sonic Labs official RPC (free, no API key required)
+    this.rpcUrl = 'https://rpc.soniclabs.com';
   }
 
   /**
