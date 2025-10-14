@@ -1395,21 +1395,28 @@ export function getEnhancedDashboardHTML(): string {
         });
         
         const data = await response.json();
-        
-        if (data.success) {
-          pricesEl.innerHTML = Object.entries(data.data).map(([symbol, price]) => \`
+
+        if (data.success && data.data.data) {
+          pricesEl.innerHTML = data.data.data.map(item => {
+            const price = item.VALUE.PRICE;
+            const change = item.CURRENT_DAY.CHANGE_PERCENTAGE || 0;
+            return \`
             <div class="price-item">
               <div class="price-info">
-                <div class="price-label">\${symbol}</div>
-                <div class="price-value">$\${price.price.toFixed(price.price < 1 ? 6 : 2)}</div>
+                <div class="price-label">\${item.INSTRUMENT}</div>
+                <div class="price-value">$\${price < 1 ? price.toFixed(6) : price.toFixed(2)}</div>
               </div>
-              <div class="price-change \${price.change_24h >= 0 ? 'positive' : 'negative'}">
-                \${price.change_24h >= 0 ? '+' : ''}\${price.change_24h?.toFixed(2) || 'N/A'}%
+              <div class="price-change \${change >= 0 ? 'positive' : 'negative'}">
+                \${change >= 0 ? '+' : ''}\${change.toFixed(2)}%
               </div>
             </div>
-          \`).join('');
+          \`;
+          }).join('');
+        } else {
+          pricesEl.innerHTML = '<div class="info-text">No price data available</div>';
         }
       } catch (error) {
+        console.error('Price error:', error);
         pricesEl.innerHTML = '<div class="error-message">Failed to load prices</div>';
       }
     }
@@ -1428,16 +1435,19 @@ export function getEnhancedDashboardHTML(): string {
         });
         
         const data = await response.json();
-        
+
         if (data.success && data.data.ai_analysis) {
           sentimentEl.innerHTML = \`
             <div class="info-text">\${data.data.ai_analysis}</div>
           \`;
+        } else if (data.error && data.error.includes('CoinDesk')) {
+          sentimentEl.innerHTML = '<div class="info-text">⚠️ CoinDesk API temporarily unavailable. Sentiment analysis will return when service is restored.</div>';
         } else {
           sentimentEl.innerHTML = '<div class="info-text">Sentiment analysis unavailable</div>';
         }
       } catch (error) {
-        sentimentEl.innerHTML = '<div class="error-message">Failed to load sentiment</div>';
+        console.error('Sentiment error:', error);
+        sentimentEl.innerHTML = '<div class="info-text">Sentiment analysis temporarily unavailable</div>';
       }
     }
     
@@ -2048,6 +2058,7 @@ location.reload();
       // Load initial data
       loadGlobalStats();
       refreshTrending();
+      refreshHeatmap();
       refreshPrices();
       refreshSentiment();
 
@@ -2055,6 +2066,7 @@ location.reload();
       setInterval(() => {
         loadGlobalStats();
         refreshTrending();
+        refreshHeatmap();
         refreshPrices();
       }, 60000);
 
