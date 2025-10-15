@@ -57,7 +57,8 @@ export class OrderlyService {
       }
 
       const data = await response.json() as any;
-      return data.rows || [];
+      // API returns { success: true, data: { rows: [...] } }
+      return data.data?.rows || data.rows || [];
     } catch (error) {
       console.error('Orderly getMarkets error:', error);
       return [];
