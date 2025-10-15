@@ -1,6 +1,6 @@
 #Wrangler config for Sonic Crypto MCP Server
 
-name = "coindesk-mcp"
+name = "sonic-crypto-mcp-server"
 main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
