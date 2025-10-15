@@ -1497,29 +1497,46 @@ export function getEnhancedDashboardHTML(): string {
       dexEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
       try {
-        const response = await fetch('/api/dexscreener/sonic');
+        // Get trending Sonic tokens with gainers (popular tokens)
+        const response = await fetch('/api/trending?source=sonic&limit=15');
         const data = await response.json();
 
         if (data.success && data.data) {
-          // data.data is an object like { "SONIC": {...}, "S": {...} }
-          const prices = Object.values(data.data);
+          // Combine gainers and losers to show most active tokens
+          const tokens = [...data.data.gainers, ...data.data.losers].slice(0, 10);
 
-          if (prices.length === 0) {
+          if (tokens.length === 0) {
             dexEl.innerHTML = '<div class="info-text">No Sonic DEX pairs available</div>';
             return;
           }
 
-          dexEl.innerHTML = prices.slice(0, 10).map(priceData => \`
+          dexEl.innerHTML = tokens.map(token => {
+            const liquidity = token.liquidity || 0;
+            const priceUsd = parseFloat(token.priceUsd || 0);
+            const change24h = token.percent_change_24h || 0;
+
+            // Calculate daily range (assuming ±% from current price)
+            const priceHigh = priceUsd * (1 + Math.abs(change24h) / 100);
+            const priceLow = priceUsd * (1 - Math.abs(change24h) / 100);
+
+            return \`
             <div class="price-item">
               <div class="price-info">
-                <div class="price-label">💧 \${priceData.symbol}/USD</div>
-                <div class="price-value">$\${priceData.price < 0.01 ? priceData.price.toFixed(6) : priceData.price.toFixed(4)}</div>
+                <div class="price-label">💧 \${token.symbol}</div>
+                <div class="price-value">$\${priceUsd < 0.01 ? priceUsd.toFixed(6) : priceUsd.toFixed(4)}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                  Liquidity: $\${liquidity > 1000 ? (liquidity / 1000).toFixed(1) + 'K' : liquidity.toFixed(0)}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                  24h Range: $\${priceLow.toFixed(4)} - $\${priceHigh.toFixed(4)}
+                </div>
               </div>
-              <div class="price-change \${priceData.priceChange24h >= 0 ? 'positive' : 'negative'}">
-                \${priceData.priceChange24h >= 0 ? '+' : ''}\${priceData.priceChange24h.toFixed(2)}%
+              <div class="price-change \${change24h >= 0 ? 'positive' : 'negative'}">
+                \${change24h >= 0 ? '+' : ''}\${change24h.toFixed(2)}%
               </div>
             </div>
-          \`).join('');
+          \`;
+          }).join('');
         } else {
           dexEl.innerHTML = '<div class="info-text">No DEX pair data available</div>';
         }
