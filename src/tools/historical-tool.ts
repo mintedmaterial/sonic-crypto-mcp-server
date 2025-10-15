@@ -96,8 +96,7 @@ export async function executeGetHistoricalDaily(
         success: true,
         data: cached,
         summary: `Fetched ${limit} days of historical data for ${instruments.join(', ')} (from cache)`,
-        timestamp: new Date().toISOString(),
-        source: 'cache'
+        timestamp: new Date().toISOString()
       };
     }
 
@@ -118,8 +117,7 @@ export async function executeGetHistoricalDaily(
         success: true,
         data,
         summary: `Fetched ${limit} days of historical data for ${instruments.join(', ')} (from R2)`,
-        timestamp: new Date().toISOString(),
-        source: 'r2'
+        timestamp: new Date().toISOString()
       };
     }
 
