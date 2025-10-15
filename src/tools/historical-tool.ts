@@ -86,6 +86,44 @@ export async function executeGetHistoricalDaily(
   } = args;
 
   try {
+    // Try KV cache first (7 day TTL)
+    const kvKey = `historical:daily:${market}:${instruments.join(',')}`;
+    const cached = await env.SONIC_CACHE.get(kvKey, 'json');
+
+    if (cached) {
+      console.log('✅ Historical daily data from KV cache');
+      return {
+        success: true,
+        data: cached,
+        summary: `Fetched ${limit} days of historical data for ${instruments.join(', ')} (from cache)`,
+        timestamp: new Date().toISOString(),
+        source: 'cache'
+      };
+    }
+
+    // Try R2 storage
+    const r2Key = `historical/daily/${market}/${instruments.join('-')}/${new Date().toISOString().split('T')[0]}.json`;
+    const r2Object = await env.HISTORICAL_DATA.get(r2Key);
+
+    if (r2Object) {
+      const data = await r2Object.json();
+      console.log('✅ Historical daily data from R2 storage');
+
+      // Refresh KV cache
+      await env.SONIC_CACHE.put(kvKey, JSON.stringify(data), {
+        expirationTtl: 7 * 24 * 60 * 60
+      });
+
+      return {
+        success: true,
+        data,
+        summary: `Fetched ${limit} days of historical data for ${instruments.join(', ')} (from R2)`,
+        timestamp: new Date().toISOString(),
+        source: 'r2'
+      };
+    }
+
+    // Fall back to CoinDesk API
     const params: any = {
       market,
       instruments,
@@ -97,8 +135,7 @@ export async function executeGetHistoricalDaily(
 
     const data = await fetchCoinDeskData('/index/cc/v1/historical/days', params, env);
 
-    // Store in R2 for long-term storage
-    const r2Key = `historical/daily/${market}/${instruments.join('-')}/${new Date().toISOString().split('T')[0]}.json`;
+    // Store in R2 for long-term storage (reuse r2Key from above)
     await env.HISTORICAL_DATA.put(r2Key, JSON.stringify(data), {
       httpMetadata: {
         contentType: 'application/json',
@@ -111,8 +148,7 @@ export async function executeGetHistoricalDaily(
       }
     });
 
-    // Also cache recent data in KV (7 day TTL)
-    const kvKey = `historical:daily:${market}:${instruments.join(',')}`;
+    // Also cache recent data in KV (7 day TTL, reuse kvKey from above)
     await env.SONIC_CACHE.put(kvKey, JSON.stringify(data), {
       expirationTtl: 7 * 24 * 60 * 60 // 7 days
     });
